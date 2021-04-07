@@ -99,13 +99,14 @@ class Corpus(object):
             if self._ngrams[identifier]['model'] == model:
                 return self._ngrams[identifier]
 
-        counts = self._Counts(n=n)
+        if model == 'laplace' or model == 'vanilla':
+            counts = self._Counts(n=n)
 
-        if model == 'laplace':
-            for x in counts:
-                counts[x] += 1
+            if model == 'laplace':
+                for x in counts:
+                    counts[x] += 1
 
-        if model == 'unk':
+        elif model == 'unk':
             _count = self._Counts(n=1)
             tc = []
             for s in self:
@@ -129,6 +130,13 @@ class Corpus(object):
         return self._ngrams[identifier]
 
     def Model(self, n=2, model='vanilla'):
+        if n < 1:
+            raise Exception('Unigrams and up are supported, otherwise no.')
+
+        if model != 'vanilla' and \
+                model != 'laplace' and \
+                model != 'unk':
+            raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
         identifier = tuple([n, model])
         if identifier in self._models:
             if self._models[identifier].model == model:
