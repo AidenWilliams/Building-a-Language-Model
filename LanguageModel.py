@@ -5,12 +5,12 @@ import os
 
 
 class Corpus(object):
-    def __init__(self, corpus=None, directory="Corpus/"):
+    def __init__(self, corpus=None, directory='Corpus/'):
         if corpus is None:
             self._corpus = self._CorpusAsListOfSentences(directory)
         else:
             self._corpus = corpus
-        identifier = tuple([1, "vanilla"])
+        identifier = tuple([1, 'vanilla'])
         self._ngrams = {}
         self._ngrams[identifier] = self.NGram(n=1)
         self._models = {}
@@ -28,9 +28,9 @@ class Corpus(object):
 
     # Create functions to free memory once function scope is left
     @staticmethod
-    def _ReadCorpus(root="Corpus/"):
+    def _ReadCorpus(root='Corpus/'):
         if not os.access(root, os.R_OK):
-            print("Check root!!")
+            print('Check root!!')
 
         xml_data = []
 
@@ -39,7 +39,7 @@ class Corpus(object):
         return xml_data
 
     @staticmethod
-    def _ParseAsXML(root="Corpus/"):
+    def _ParseAsXML(root='Corpus/'):
         parser = etree.XMLParser(recover=True)
         roots = []
         xml_data = Corpus._ReadCorpus(root)
@@ -48,7 +48,7 @@ class Corpus(object):
         return roots
 
     @staticmethod
-    def _CorpusAsListOfSentences(root="Corpus/"):
+    def _CorpusAsListOfSentences(root='Corpus/'):
         roots = Corpus._ParseAsXML(root)
         sentences = []
         for root in tqdm(roots, desc='XML File'):
@@ -57,14 +57,14 @@ class Corpus(object):
                     unfiltered_sentence = re.split(r'\n', s.text.lstrip('\n'))
                     sentence = []
                     for unfiltered_word in unfiltered_sentence:
-                        if unfiltered_word is not "":
+                        if unfiltered_word is not '':
                             filtered_word = unfiltered_word.split('\t')
                             sentence.append(filtered_word[0])
 
                     if sentence is not []:
-                        sentence.insert(0, "<s>")
+                        sentence.insert(0, '<s>')
                         sentences.append(sentence)
-                        sentence.append("</s>")
+                        sentence.append('</s>')
         return sentences
 
     def _Counts(self, n):
@@ -85,34 +85,34 @@ class Corpus(object):
 
         return counts
 
-    def NGram(self, n=2, model="vanilla"):
+    def NGram(self, n=2, model='vanilla'):
         if n < 1:
-            raise Exception("Unigrams and up are supported, otherwise no.")
+            raise Exception('Unigrams and up are supported, otherwise no.')
 
-        if model != "vanilla" and \
-                model != "laplace" and \
-                model != "unk":
-            raise Exception("Only 'vanilla'/'laplace'/'unk' models are supported.")
+        if model != 'vanilla' and \
+                model != 'laplace' and \
+                model != 'unk':
+            raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
 
         identifier = tuple([n, model])
         if identifier in self._ngrams:
-            if self._ngrams[identifier]["model"] == model:
+            if self._ngrams[identifier]['model'] == model:
                 return self._ngrams[identifier]
 
         counts = self._Counts(n=n)
 
-        if model == "laplace":
+        if model == 'laplace':
             for x in counts:
                 counts[x] += 1
 
-        if model == "unk":
+        if model == 'unk':
             _count = self._Counts(n=1)
             tc = []
             for s in self:
                 ts = []
                 for w in s:
                     if _count[tuple([w])] < 3:
-                        ts.append("UNK")
+                        ts.append('UNK')
                     else:
                         ts.append(w)
                 tc.append(ts)
@@ -120,19 +120,15 @@ class Corpus(object):
             temp = Corpus(corpus=tc)
             counts = temp._Counts(n=n)
 
-        gram = {}
-        for x in counts:
-            gram[x] = {"count": counts[x]}
-
         result = {
-            "gram": gram,
-            "model": model
+            'count': counts,
+            'model': model
         }
 
         self._ngrams[identifier] = result
         return self._ngrams[identifier]
 
-    def Model(self, n=2, model="vanilla"):
+    def Model(self, n=2, model='vanilla'):
         identifier = tuple([n, model])
         if identifier in self._models:
             if self._models[identifier].model == model:
@@ -141,9 +137,9 @@ class Corpus(object):
         self._models[identifier] = Model(corpus=self, n=n, model=model)
         return self._models[identifier]
 
-    def LinearInterpolation(self, trigram: tuple, model="vanilla"):
+    def LinearInterpolation(self, trigram: tuple, model='vanilla'):
         if len(trigram) != 3:
-            raise Exception("Only trigrams are supported with this function.")
+            raise Exception('Only trigrams are supported with this function.')
 
         l1 = 0.1
         l2 = 0.3
@@ -161,26 +157,26 @@ class Corpus(object):
 
 
 class Model(object):
-    def __init__(self, corpus, n=2, model="vanilla"):
+    def __init__(self, corpus, n=2, model='vanilla'):
         V = 0
         cmodel = model
-        if model == "laplace":
-            cmodel = "vanilla"
-            V = len(corpus.NGram(n=1)['gram'])
+        if model == 'laplace':
+            cmodel = 'vanilla'
+            V = len(corpus.NGram(n=1)['count'])
 
-        counts = corpus.NGram(n, model=cmodel)['gram']
+        counts = corpus.NGram(n, model=cmodel)['count']
 
         probabilities = {}
         self.N = len([w for s in corpus for w in s])
 
         if n is not 1:
-            previous = corpus.NGram(n - 1, model=cmodel)['gram']
+            previous = corpus.NGram(n - 1, model=cmodel)['count']
             for x in counts:
                 probabilities[x] = {
-                    "probability": (counts[x]["count"] + int(model == "laplace")) / (previous[x[:n - 1]]["count"] + V)}
+                    'probability': (counts[x] + int(model == 'laplace')) / (previous[x[:n - 1]] + V)}
         else:
             for x in counts:
-                probabilities[x] = {"probability": (counts[x]["count"] + int(model == "laplace")) / (self.N + V)}
+                probabilities[x] = {'probability': (counts[x] + int(model == 'laplace')) / (self.N + V)}
         self.probabilities = probabilities
         self.model = model
 
@@ -189,7 +185,7 @@ class Model(object):
         sequence = givenY + (forX,)
 
         if sequence in self.probabilities:
-            return self.probabilities[sequence]["probability"]
+            return self.probabilities[sequence]['probability']
         else:
             return 0
 
@@ -198,13 +194,17 @@ class Model(object):
         sequence = givenY + (forX,)
 
         if sequence in self.probabilities:
-            return self.probabilities[sequence]["probability"]
+            return self.probabilities[sequence]['probability']
         else:
             return 0
 
     def Perplexity(self):
         prob = 1
         for p in self.probabilities:
-            prob *= self.probabilities[p]["probability"]
+            prob *= self.probabilities[p]['probability']
 
         return prob ** -(1 / self.N)
+
+
+corpus = Corpus(directory='Test Corpus/')
+corpus.NGram()
