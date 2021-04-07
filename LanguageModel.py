@@ -99,7 +99,11 @@ class Corpus(object):
             if self._ngrams[identifier]["model"] == model:
                 return self._ngrams[identifier]
 
-        x_counts = self._Counts(n=n)
+        counts = self._Counts(n=n)
+
+        if model == "laplace":
+            for x in counts:
+                counts[x] += 1
 
         if model == "unk":
             _count = self._Counts(n=1)
@@ -114,11 +118,11 @@ class Corpus(object):
                 tc.append(ts)
 
             temp = Corpus(corpus=tc)
-            x_counts = temp._Counts(n=n)
+            counts = temp._Counts(n=n)
 
         gram = {}
-        for x in x_counts:
-            gram[x] = {"count": x_counts[x]}
+        for x in counts:
+            gram[x] = {"count": counts[x]}
 
         result = {
             "gram": gram,
@@ -158,16 +162,19 @@ class Corpus(object):
 
 class Model(object):
     def __init__(self, corpus, n=2, model="vanilla"):
-        counts = corpus.NGram(n, model=model)['gram']
         V = 0
+        cmodel = model
         if model == "laplace":
+            cmodel = "vanilla"
             V = len(corpus.NGram(n=1)['gram'])
+
+        counts = corpus.NGram(n, model=cmodel)['gram']
 
         probabilities = {}
         self.N = len([w for s in corpus for w in s])
 
         if n is not 1:
-            previous = corpus.NGram(n - 1, model=model)['gram']
+            previous = corpus.NGram(n - 1, model=cmodel)['gram']
             for x in counts:
                 probabilities[x] = {
                     "probability": (counts[x]["count"] + int(model == "laplace")) / (previous[x[:n - 1]]["count"] + V)}
