@@ -206,5 +206,7 @@ class Model(object):
         return prob ** -(1 / self.N)
 
 
-corpus = Corpus(directory='Test Corpus/')
-corpus.NGram()
+# corpus = Corpus(directory='Test Corpus/')
+# corpus.NGram()
+# corpus.Model()
+
