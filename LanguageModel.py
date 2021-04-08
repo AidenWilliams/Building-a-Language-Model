@@ -129,6 +129,26 @@ class Corpus(object):
         self._ngrams[identifier] = result
         return self._ngrams[identifier]
 
+    def GetCount(self, sequence: tuple, model='vanilla'):
+        n = len(sequence)
+        if n < 1:
+            raise Exception('Unigrams and up are supported, otherwise no.')
+
+        if model != 'vanilla' and \
+                model != 'laplace' and \
+                model != 'unk':
+            raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
+
+        counts = self.NGram(n, model)['count']
+
+        if sequence in counts:
+            return counts[sequence]
+        else:
+            if model == 'laplace':
+                return 1
+            else:
+                return 0
+
     def Model(self, n=2, model='vanilla'):
         if n < 1:
             raise Exception('Unigrams and up are supported, otherwise no.')
@@ -188,17 +208,8 @@ class Model(object):
         self.probabilities = probabilities
         self.model = model
 
-    def GetProbability(self, givenY, forX):
-        # Add input validation
-        sequence = givenY + (forX,)
-
-        if sequence in self.probabilities:
-            return self.probabilities[sequence]['probability']
-        else:
-            return 0
-
+    # ('x', tuple(y, z))
     def GetProbabilityMath(self, forX, givenY):
-        # Add input validation
         sequence = givenY + (forX,)
 
         if sequence in self.probabilities:
@@ -213,8 +224,6 @@ class Model(object):
 
         return prob ** -(1 / self.N)
 
-
 # corpus = Corpus(directory='Test Corpus/')
 # corpus.NGram()
 # corpus.Model()
-
