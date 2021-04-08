@@ -191,11 +191,11 @@ class Corpus(object):
                 tc = Corpus([input])
 
         _model = self.Model(n=n, model=model)
-        _ngrams = tc.NGram(n=n, model=model)
+        _ngram = tc.NGram(n=n, model=model)
 
         input_probability = 1
         exists = False
-        for _n in _ngrams['count']:
+        for _n in _ngram['count']:
             exists = True
             input_probability *= _model.GetProbabilityMath(_n[-1], _n[:n - 1]) ** tc.GetCount(_n, model=model)
 
@@ -204,23 +204,43 @@ class Corpus(object):
 
         return input_probability
 
-    def LinearInterpolation(self, trigram: tuple, model='vanilla'):
-        if len(trigram) != 3:
-            raise Exception('Only trigrams are supported with this function.')
+    def TrigramLinearInterpolation(self, input, model='vanilla'):
+        if model != 'vanilla' and \
+                model != 'laplace' and \
+                model != 'unk':
+            raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
+
+        paragraph = False
+        for elem in input:
+            if isinstance(elem, list):
+                paragraph = True
+            if paragraph and not isinstance(elem, list):
+                raise Exception('Input must be of the forms:\n[str, str, str]\n[[str, str, str], ...,  [str, str, '
+                                'str]].')
+
+        if paragraph:
+            tc = Corpus(input)
+        else:
+            tc = Corpus([input])
 
         l1 = 0.1
         l2 = 0.3
         l3 = 0.6
 
-        models = [
-            self.Model(n=1, model=model),
-            self.Model(n=2, model=model),
-            self.Model(n=3, model=model)
-        ]
+        _ngram = tc.NGram(n=3, model=model)
 
-        return l3 * models[2].GetProbability(trigram[2], trigram[:2]) + \
-               l2 * models[1].GetProbability(trigram[2], tuple(trigram[1])) + \
-               l1 * models[0].GetProbability(trigram[2])
+        input_probability = 1
+        exists = False
+        for _n in _ngram['count']:
+            exists = True
+            input_probability *= l3 * self.GetProbability(input=[_n[2], _n[:2][0], _n[:2][1]], n=3, model=model) + \
+                                 l2 * self.GetProbability(input=[_n[2], _n[1]], n=2, model=model) + \
+                                 l1 * self.GetProbability(input=_n[2], n=1, model=model)
+
+        if not exists:
+            input_probability = 0
+
+        return input_probability
 
 
 class Model(object):
@@ -264,11 +284,11 @@ class Model(object):
         return prob ** -(1 / self.N)
 
 
-corpus = Corpus(directory='Test Corpus/')
+# corpus = Corpus(directory='Test Corpus/')
+# #
+# t = ['I', 'am', 'Sam']
 #
-t = '<s>'
-
-#print(corpus.GetProbability(t))
-#
-# # corpus.NGram()
-# # corpus.Model()
+# print(corpus.LinearInterpolation(t))
+# #
+# # # corpus.NGram()
+# # # corpus.Model()
