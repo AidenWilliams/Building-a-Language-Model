@@ -67,7 +67,7 @@ class Corpus(object):
                         sentence.append('</s>')
         return sentences
 
-    def _Counts(self, n):
+    def Counts(self, n):
         counts = {}
         for s in tqdm(self, desc='Counting x counts'):
             for i in range(len(s) + 1):
@@ -100,14 +100,14 @@ class Corpus(object):
                 return self._ngrams[identifier]
 
         if model == 'laplace' or model == 'vanilla':
-            counts = self._Counts(n=n)
+            counts = self.Counts(n=n)
 
             if model == 'laplace':
                 for x in counts:
                     counts[x] += 1
 
         elif model == 'unk':
-            _count = self._Counts(n=1)
+            _count = self.Counts(n=1)
             tc = []
             for s in self:
                 ts = []
@@ -119,7 +119,7 @@ class Corpus(object):
                 tc.append(ts)
 
             temp = Corpus(corpus=tc)
-            counts = temp._Counts(n=n)
+            counts = temp.Counts(n=n)
 
         result = {
             'count': counts,
@@ -139,10 +139,10 @@ class Corpus(object):
                 model != 'unk':
             raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
 
-        counts = self.NGram(n, model)['count']
+        _ngram = self.NGram(n, model)['count']
 
-        if sequence in counts:
-            return counts[sequence]
+        if sequence in _ngram:
+            return _ngram[sequence]
         else:
             if model == 'laplace':
                 return 1
@@ -157,6 +157,7 @@ class Corpus(object):
                 model != 'laplace' and \
                 model != 'unk':
             raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
+
         identifier = tuple([n, model])
         if identifier in self._models:
             if self._models[identifier].model == model:
@@ -164,6 +165,44 @@ class Corpus(object):
 
         self._models[identifier] = Model(corpus=self, n=n, model=model)
         return self._models[identifier]
+
+    def GetProbability(self, input, n, model='vanilla'):
+        if n < 1:
+            raise Exception('Unigrams and up are supported, otherwise no.')
+
+        if model != 'vanilla' and \
+                model != 'laplace' and \
+                model != 'unk':
+            raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
+
+        if type(input) is str:
+            tc = Corpus([[input]])
+        else:
+            paragraph = False
+            for elem in input:
+                if isinstance(elem, list):
+                    paragraph = True
+                if paragraph and not isinstance(elem, list):
+                    raise Exception('Input must be of the forms:\nstr\n[str]\n[[str],[str]].')
+
+            if paragraph:
+                tc = Corpus(input)
+            else:
+                tc = Corpus([input])
+
+        _model = self.Model(n=n, model=model)
+        _ngrams = tc.NGram(n=n, model=model)
+
+        input_probability = 1
+        exists = False
+        for _n in _ngrams['count']:
+            exists = True
+            input_probability *= _model.GetProbabilityMath(_n[-1], _n[:n - 1]) ** tc.GetCount(_n, model=model)
+
+        if not exists:
+            input_probability = 0
+
+        return input_probability
 
     def LinearInterpolation(self, trigram: tuple, model='vanilla'):
         if len(trigram) != 3:
@@ -208,7 +247,7 @@ class Model(object):
         self.probabilities = probabilities
         self.model = model
 
-    # ('x', tuple(y, z))
+    # ('z', tuple(x, y))
     def GetProbabilityMath(self, forX, givenY):
         sequence = givenY + (forX,)
 
@@ -224,6 +263,12 @@ class Model(object):
 
         return prob ** -(1 / self.N)
 
-# corpus = Corpus(directory='Test Corpus/')
-# corpus.NGram()
-# corpus.Model()
+
+corpus = Corpus(directory='Test Corpus/')
+#
+t = '<s>'
+
+#print(corpus.GetProbability(t))
+#
+# # corpus.NGram()
+# # corpus.Model()
