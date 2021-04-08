@@ -183,7 +183,8 @@ class Corpus(object):
                 if isinstance(elem, list):
                     paragraph = True
                 if paragraph and not isinstance(elem, list):
-                    raise Exception('Input must be of the forms:\nstr\n[str]\n[[str],[str]].')
+                    raise Exception('Input must be of the forms:\nstr\n[str, str, str]\n[[str, str, str], ...,  [str, '
+                                    'str, str]].')
 
             if paragraph:
                 tc = Corpus(input)
@@ -229,18 +230,18 @@ class Corpus(object):
 
         _ngram = tc.NGram(n=3, model=model)
 
-        input_probability = 1
+        output = 1
         exists = False
         for _n in _ngram['count']:
             exists = True
-            input_probability *= l3 * self.GetProbability(input=[_n[2], _n[:2][0], _n[:2][1]], n=3, model=model) + \
-                                 l2 * self.GetProbability(input=[_n[2], _n[1]], n=2, model=model) + \
-                                 l1 * self.GetProbability(input=_n[2], n=1, model=model)
+            output *= l3 * self.GetProbability(input=[_n[2], _n[0], _n[1]], n=3, model=model) + \
+                      l2 * self.GetProbability(input=[_n[2], _n[1]], n=2, model=model) + \
+                      l1 * self.GetProbability(input=_n[2], n=1, model=model)
 
         if not exists:
-            input_probability = 0
+            output = 0
 
-        return input_probability
+        return output
 
 
 class Model(object):
@@ -282,7 +283,6 @@ class Model(object):
             prob *= self.probabilities[p]['probability']
 
         return prob ** -(1 / self.N)
-
 
 # corpus = Corpus(directory='Test Corpus/')
 # #
