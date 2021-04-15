@@ -2,6 +2,7 @@ from lxml import etree
 import re
 from tqdm.notebook import tqdm
 import os
+from collections import defaultdict
 
 
 class Corpus(object):
@@ -68,7 +69,7 @@ class Corpus(object):
         return sentences
 
     def Counts(self, n):
-        counts = {}
+        counts = defaultdict(lambda: 0)
         for s in tqdm(self, desc='Counting x counts'):
             for i in range(len(s) + 1):
                 if i < n:
@@ -78,10 +79,7 @@ class Corpus(object):
                     count.append(s[i - x])
                 count = tuple(count)
 
-                if count in counts:
-                    counts[count] += 1
-                else:
-                    counts[count] = 1
+                counts[count] += 1
 
         return counts
 
@@ -106,7 +104,7 @@ class Corpus(object):
                 for x in counts:
                     counts[x] += 1
 
-        elif model == 'unk':
+        else:
             _count = self.Counts(n=1)
             tc = []
             for s in self:
@@ -281,14 +279,8 @@ class Model(object):
         prob = 1
         for p in self.probabilities:
             prob *= self.probabilities[p]['probability']
+        if prob == 0:
+            return 0
+        else:
+            return prob ** -(1 / self.N)
 
-        return prob ** -(1 / self.N)
-
-# corpus = Corpus(directory='Test Corpus/')
-# #
-# t = ['I', 'am', 'Sam']
-#
-# print(corpus.LinearInterpolation(t))
-# #
-# # # corpus.NGram()
-# # # corpus.Model()
