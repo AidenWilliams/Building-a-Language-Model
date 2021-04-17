@@ -3,6 +3,7 @@ import re
 from tqdm.notebook import tqdm
 import os
 from collections import defaultdict
+import numpy as np
 
 
 class Corpus(object):
@@ -49,6 +50,19 @@ class Corpus(object):
         return roots
 
     @staticmethod
+    def filterFurther(word: str):
+        # remove symbols
+        symbols = "!\"#$%&()*+-./:;<=>?@[\]^_`{|}~\n,"
+        for i in range(len(symbols)):
+            word = np.char.replace(word, symbols[i], ' ')
+        # remove apostrophe
+        word = np.char.replace(word, "'", "")
+        # Remove any double spaces
+        word = np.char.replace(word, "  ", " ")
+
+        return np.char.lower(word)
+
+    @staticmethod
     def CorpusAsListOfSentences(root='Corpus/', verbose=False):
         roots = Corpus._ParseAsXML(root, verbose)
         sentences = []
@@ -60,7 +74,7 @@ class Corpus(object):
                     for unfiltered_word in unfiltered_sentence:
                         if unfiltered_word is not '':
                             filtered_word = unfiltered_word.split('\t')
-                            sentence.append(filtered_word[0])
+                            sentence.append(Corpus.filterFurther(filtered_word[0]))
 
                     if sentence is not []:
                         sentence.insert(0, '<s>')
@@ -161,7 +175,7 @@ class Corpus(object):
             if self._models[identifier].model == model:
                 return self._models[identifier]
 
-        self._models[identifier] = Model(corpus=self, n=n, model=model, verbose=model)
+        self._models[identifier] = Model(corpus=self, n=n, model=model, verbose=verbose)
         return self._models[identifier]
 
     def GetProbability(self, input, n, model='vanilla', verbose=False):
