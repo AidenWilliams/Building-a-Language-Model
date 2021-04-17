@@ -60,7 +60,10 @@ class Corpus(object):
         # Remove any double spaces
         word = np.char.replace(word, "  ", " ")
 
-        return np.char.lower(word)
+        word = str(np.char.lower(word))
+        if word == "" or word == " ":
+            return None
+        return word
 
     @staticmethod
     def CorpusAsListOfSentences(root='Corpus/', verbose=False):
@@ -74,7 +77,9 @@ class Corpus(object):
                     for unfiltered_word in unfiltered_sentence:
                         if unfiltered_word is not '':
                             filtered_word = unfiltered_word.split('\t')
-                            sentence.append(Corpus.filterFurther(filtered_word[0]))
+                            full_filter = Corpus.filterFurther(filtered_word[0])
+                            if full_filter is not None:
+                                sentence.append(full_filter)
 
                     if sentence is not []:
                         sentence.insert(0, '<s>')
@@ -241,7 +246,7 @@ class Corpus(object):
         l3 = 0.6
 
         _ngram = tc.NGram(n=3, model=model, verbose=verbose)
-
+        # Make it return 1
         output = 1
         exists = False
         for _n in _ngram['count']:
@@ -289,29 +294,38 @@ class Model(object):
         else:
             return 0
 
-    def Perplexity(self, input, verbose=False):
-        paragraph = False
-        for elem in input:
-            if isinstance(elem, list):
-                paragraph = True
-            if paragraph and not isinstance(elem, list):
-                raise Exception('Input must be of the forms:\n[str, str, str]\n[[str, str, str], ...,  [str, str, '
-                                'str]].')
-
-        if paragraph:
-            tc = Corpus(input, verbose=verbose)
-        else:
-            tc = Corpus([input], verbose=verbose)
-
-        _ngram = tc.NGram(n=3, model=self.model, verbose=verbose)
-
-        output = 1
-        exists = False
-        for _n in _ngram['count']:
-            exists = True
-            output *= self.GetProbabilityMath(_n[2], (_n[0], _n[1]))
-
-        if not exists or output == 0:
+    def Perplexity(self):
+        prob = 1
+        for p in self.probabilities:
+            prob *= self.probabilities[p]['probability']
+        if prob == 0:
             return 0
         else:
-            return output ** -(1 / self.N)
+            return prob ** -(1 / self.N)
+# New perplexity
+    # def Perplexity(self, input, verbose=False):
+    #     paragraph = False
+    #     for elem in input:
+    #         if isinstance(elem, list):
+    #             paragraph = True
+    #         if paragraph and not isinstance(elem, list):
+    #             raise Exception('Input must be of the forms:\n[str, str, str]\n[[str, str, str], ...,  [str, str, '
+    #                             'str]].')
+    #
+    #     if paragraph:
+    #         tc = Corpus(input, verbose=verbose)
+    #     else:
+    #         tc = Corpus([input], verbose=verbose)
+    #
+    #     _ngram = tc.NGram(n=3, model=self.model, verbose=verbose)
+    #
+    #     output = 1
+    #     exists = False
+    #     for _n in _ngram['count']:
+    #         exists = True
+    #         output *= self.GetProbabilityMath(_n[2], (_n[0], _n[1]))
+    #
+    #     if not exists or output == 0:
+    #         return 0
+    #     else:
+    #         return output ** -(1 / self.N)
