@@ -222,43 +222,15 @@ class Corpus(object):
 
         return input_probability
 
-    def TrigramLinearInterpolation(self, input, model='vanilla', verbose=False):
-        if model != 'vanilla' and \
-                model != 'laplace' and \
-                model != 'unk':
-            raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
-
-        paragraph = False
-        for elem in input:
-            if isinstance(elem, list):
-                paragraph = True
-            if paragraph and not isinstance(elem, list):
-                raise Exception('Input must be of the forms:\n[str, str, str]\n[[str, str, str], ...,  [str, str, '
-                                'str]].')
-
-        if paragraph:
-            tc = Corpus(input, verbose=verbose)
-        else:
-            tc = Corpus([input], verbose=verbose)
-
+    @staticmethod
+    def LinearInterpolation(unigram, bigram, trigram):
         l1 = 0.1
         l2 = 0.3
         l3 = 0.6
 
-        _ngram = tc.NGram(n=3, model=model, verbose=verbose)
-        # Make it return 1
-        output = 1
-        exists = False
-        for _n in _ngram['count']:
-            exists = True
-            output *= l3 * self.GetProbability(input=[_n[2], _n[0], _n[1]], n=3, model=model, verbose=verbose) + \
-                      l2 * self.GetProbability(input=[_n[2], _n[1]], n=2, model=model, verbose=verbose) + \
-                      l1 * self.GetProbability(input=_n[2], n=1, model=model, verbose=verbose)
-
-        if not exists:
-            output = 0
-
-        return output
+        return l3 * trigram + \
+               l2 * bigram + \
+               l1 * unigram
 
 
 class Model(object):
@@ -302,30 +274,3 @@ class Model(object):
             return 0
         else:
             return prob ** -(1 / self.N)
-# New perplexity
-    # def Perplexity(self, input, verbose=False):
-    #     paragraph = False
-    #     for elem in input:
-    #         if isinstance(elem, list):
-    #             paragraph = True
-    #         if paragraph and not isinstance(elem, list):
-    #             raise Exception('Input must be of the forms:\n[str, str, str]\n[[str, str, str], ...,  [str, str, '
-    #                             'str]].')
-    #
-    #     if paragraph:
-    #         tc = Corpus(input, verbose=verbose)
-    #     else:
-    #         tc = Corpus([input], verbose=verbose)
-    #
-    #     _ngram = tc.NGram(n=3, model=self.model, verbose=verbose)
-    #
-    #     output = 1
-    #     exists = False
-    #     for _n in _ngram['count']:
-    #         exists = True
-    #         output *= self.GetProbabilityMath(_n[2], (_n[0], _n[1]))
-    #
-    #     if not exists or output == 0:
-    #         return 0
-    #     else:
-    #         return output ** -(1 / self.N)
