@@ -223,7 +223,7 @@ class Corpus(object):
         return input_probability
 
     def LinearInterpolation(self, trigram, model='vanilla', verbose=False):
-        if len(trigram) != 3 or type(trigram) != type(tuple):
+        if len(trigram) != 3 or type(trigram) != tuple:
             raise Exception('trigram input must be a tuple of 3 words.')
 
         l1 = 0.1
@@ -236,27 +236,36 @@ class Corpus(object):
 
 
 class Model(object):
-    def __init__(self, corpus, n=2, model='vanilla', verbose=False):
-        V = 0
-        cmodel = model
-        if model == 'laplace':
-            cmodel = 'vanilla'
-            V = len(corpus.NGram(n=1, verbose=verbose)['count'])
+    def __init__(self, probabilities=None, corpus=None, n=2, model='vanilla', verbose=False):
+        if probabilities is None and corpus is None:
+            raise Exception('Either a corpus or probabilities must be given.')
 
-        counts = corpus.NGram(n, model=cmodel, verbose=verbose)['count']
+        if corpus is not None:
+            V = 0
+            cmodel = model
+            if model == 'laplace':
+                cmodel = 'vanilla'
+                V = len(corpus.NGram(n=1, verbose=verbose)['count'])
 
-        probabilities = {}
-        self.N = len([w for s in corpus for w in s])
+            counts = corpus.NGram(n, model=cmodel, verbose=verbose)['count']
 
-        if n is not 1:
-            previous = corpus.NGram(n - 1, model=cmodel, verbose=verbose)['count']
-            for x in counts:
-                probabilities[x] = {
-                    'probability': (counts[x] + int(model == 'laplace')) / (previous[x[:n - 1]] + V)}
-        else:
-            for x in counts:
-                probabilities[x] = {'probability': (counts[x] + int(model == 'laplace')) / (self.N + V)}
-        self.probabilities = probabilities
+            _probabilities = {}
+            self.N = len([w for s in corpus for w in s])
+
+            if n is not 1:
+                previous = corpus.NGram(n - 1, model=cmodel, verbose=verbose)['count']
+                for x in counts:
+                    _probabilities[x] = {
+                        'probability': (counts[x] + int(model == 'laplace')) / (previous[x[:n - 1]] + V)}
+            else:
+                for x in counts:
+                    _probabilities[x] = {'probability': (counts[x] + int(model == 'laplace')) / (self.N + V)}
+            self.probabilities = _probabilities
+        elif probabilities is not None:
+            _probabilities = {}
+            for p in probabilities:
+                _probabilities[p] = {'probability': probabilities[p]}
+            self.probabilities = _probabilities
         self.model = model
 
     # ('z', tuple(x, y))
