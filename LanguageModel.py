@@ -222,15 +222,17 @@ class Corpus(object):
 
         return input_probability
 
-    @staticmethod
-    def LinearInterpolation(unigram, bigram, trigram):
+    def LinearInterpolation(self, trigram, model='vanilla', verbose=False):
+        if len(trigram) != 3 or type(trigram) != type(tuple):
+            raise Exception('trigram input must be a tuple of 3 words.')
+
         l1 = 0.1
         l2 = 0.3
         l3 = 0.6
 
-        return l3 * trigram + \
-               l2 * bigram + \
-               l1 * unigram
+        return l3 * self.GetProbability(input=[trigram[2], trigram[0], trigram[1]], n=3, model=model, verbose=verbose) + \
+               l2 * self.GetProbability(input=[trigram[2], trigram[1]], n=2, model=model, verbose=verbose) + \
+               l1 * self.GetProbability(input=trigram[2], n=1, model=model, verbose=verbose)
 
 
 class Model(object):
@@ -258,7 +260,7 @@ class Model(object):
         self.model = model
 
     # ('z', tuple(x, y))
-    def GetProbabilityMath(self, forX, givenY):
+    def GetProbabilityMath(self, forX, givenY:tuple):
         sequence = givenY + (forX,)
 
         if sequence in self.probabilities:
@@ -274,3 +276,5 @@ class Model(object):
             return 0
         else:
             return prob ** -(1 / self.N)
+
+
