@@ -253,7 +253,7 @@ class Corpus(object):
             if skipchance == 0:
                 continue
 
-            if probsforword[k] > highestv:
+            if probsforword[k] > highestv and k != '<s>':
                 highestk = k
                 highestv = probsforword[k]
 
@@ -263,16 +263,41 @@ class Corpus(object):
         sentence = []
         if startword != '<s>':
             sentence.append(startword)
-        _model = self.Model(n=n, model=model, verbose=verbose)
-        next = self.getClosestTo(word=startword, n=n, model=model, verbose=verbose)
 
-        while len(sentence) < 25:
-            for w in next:
-                sentence.append(w)
-                if w == '</s>':
+        if n != 1:
+            _model = self.Model(n=n, model=model, verbose=verbose)
+            next = self.getClosestTo(word=startword, n=n, model=model, verbose=verbose)
+
+            while len(sentence) < 25:
+                for w in next:
+                    sentence.append(w)
+                    if w == '</s>':
+                        return sentence[:-1]
+
+                next = self.getClosestTo(word=next[-1], n=n, model=model, verbose=verbose)
+        else:
+            _ngram = self.NGram(n=n, model=model, verbose=verbose)
+            highestk = ''
+
+            while len(sentence) < 25 and highestk != '</s>':
+                probsforword = {}
+                highestv = 0
+                highestk = ''
+                for k in _ngram['count']:
+                    probsforword[k] = self.GetProbability(input=k, n=n, model=model, verbose=verbose)
+
+                    skipchance = random.randint(0, 9)
+
+                    if skipchance == 0:
+                        continue
+
+                    if probsforword[k] > highestv and k[0] != '<s>':
+                        highestk = k
+                        highestv = probsforword[k]
+
+                sentence.append(highestk[0])
+                if highestk[0] == '</s>':
                     return sentence[:-1]
-
-            next = self.getClosestTo(word=next[-1], n=n, model=model, verbose=verbose)
 
         return sentence
 
