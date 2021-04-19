@@ -236,26 +236,33 @@ class Corpus(object):
                l1 * self.GetProbability(input=trigram[2], n=1, model=model, verbose=verbose)
 
     def getClosestTo(self, word, n=2, model='vanilla', verbose=False):
-        _model = self.Model(n=n, model=model, verbose=verbose)
+        _ngram = self.NGram(n=n, model=model, verbose=verbose)
 
         word = word if word == '<s>' else self.filterFurther(word)
 
-        keys = [x for x in _model.probabilities.keys() if x[0] == word]
+        keys = [x for x in _ngram['count'].keys() if x[0] == word]
 
         probsforword = {}
         highestv = 0
         highestk = ''
         for k in keys:
             probsforword[k] = self.GetProbability(input=k, n=n, model=model, verbose=verbose)
+
+            skipchance = random.randint(0, 9)
+
+            if skipchance == 0:
+                continue
+
             if probsforword[k] > highestv:
                 highestk = k
                 highestv = probsforword[k]
 
         return highestk[1:]
 
-    def GenerateSentence(self, startword=None, n=2, model='vanilla', verbose=False):
-        startword = '<s>' if startword is None else startword
+    def GenerateSentence(self, startword='<s>', n=2, model='vanilla', verbose=False):
         sentence = []
+        if startword != '<s>':
+            sentence.append(startword)
         _model = self.Model(n=n, model=model, verbose=verbose)
         next = self.getClosestTo(word=startword, n=n, model=model, verbose=verbose)
 
@@ -320,3 +327,6 @@ class Model(object):
             return float("inf")
         else:
             return prob ** -(1 / self.N)
+
+train_corpus = Corpus(directory='Test Corpus')
+print(train_corpus.GenerateSentence(n=1))
