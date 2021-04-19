@@ -118,14 +118,14 @@ class Corpus(object):
                 return self._ngrams[identifier]
 
         if model == 'laplace' or model == 'vanilla':
-            counts = self.Counts(n, verbose)
+            counts = self.Counts(n=n, verbose=verbose)
 
             if model == 'laplace':
                 for x in counts:
                     counts[x] += 1
 
         else:
-            _count = self.Counts(1, verbose)
+            _count = self.Counts(n=1, verbose=verbose)
             tc = []
             for s in self:
                 ts = []
@@ -137,7 +137,7 @@ class Corpus(object):
                 tc.append(ts)
 
             temp = Corpus(corpus=tc, verbose=verbose)
-            counts = temp.Counts(n, verbose)
+            counts = temp.Counts(n=n, verbose=verbose)
 
         result = {
             'count': counts,
@@ -157,7 +157,7 @@ class Corpus(object):
                 model != 'unk':
             raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
 
-        _ngram = self.NGram(n, model, verbose)['count']
+        _ngram = self.NGram(n=n, model=model, verbose=verbose)['count']
 
         if sequence in _ngram:
             return _ngram[sequence]
