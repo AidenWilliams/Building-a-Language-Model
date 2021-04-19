@@ -258,16 +258,17 @@ class Model(object):
             if n is not 1:
                 previous = corpus.NGram(n - 1, model=cmodel, verbose=verbose)['count']
                 for x in counts:
-                    _probabilities[x] = {
-                        'probability': (counts[x] + int(model == 'laplace')) / (previous[x[:n - 1]] + V)}
+                    _probabilities[x] = (counts[x] + int(model == 'laplace')) / (previous[x[:n - 1]] + V)
             else:
                 for x in counts:
-                    _probabilities[x] = {'probability': (counts[x] + int(model == 'laplace')) / (self.N + V)}
+                    _probabilities[x] = (counts[x] + int(model == 'laplace')) / (self.N + V)
+
             self.probabilities = _probabilities
+
         elif probabilities is not None:
             _probabilities = {}
             for p in probabilities:
-                _probabilities[p] = {'probability': probabilities[p]}
+                _probabilities[p] = probabilities[p]
             self.probabilities = _probabilities
         self.model = model
 
@@ -276,14 +277,14 @@ class Model(object):
         sequence = givenY + (forX,)
 
         if sequence in self.probabilities:
-            return self.probabilities[sequence]['probability']
+            return self.probabilities[sequence]
         else:
             return 0
 
     def Perplexity(self):
         prob = 1
         for p in self.probabilities:
-            prob *= self.probabilities[p]['probability']
+            prob *= self.probabilities[p]
         if prob == 0:
             return float("inf")
         else:

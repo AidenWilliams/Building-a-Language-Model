@@ -36,7 +36,17 @@ ham	null	null	null
 
 
 ~~MONKEY~~
+#%%
+probs = train_corpus.Model(n=1, model='unk').probabilities
 
+count = 0
+for gram in probs:
+    count += probs[gram]
+
+print(count)
+
+n, bins, patches = plt.hist(probs.values(), 100, facecolor='blue', alpha=0.5)
+plt.show()
 #%%
 
 unigram = OrderedDict()
@@ -80,6 +90,9 @@ for n in tqdm(params["n"]):
             for k, v in sorted_tuples:
                 interpolation[model][k] = v
             #interpolation[model] = interpolations
+
+
+#%%
 
 #%%
 
@@ -129,3 +142,5 @@ for i in range(min(len(unigram["unk"]), 5)):
 #%%
 
 #print(Corpus(test,verbose=True).Model(n=2).Perplexity())
+
+#%% md
