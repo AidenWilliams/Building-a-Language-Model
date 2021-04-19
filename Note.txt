@@ -33,3 +33,99 @@ ham	null	null	null
 </s>
 </p>
 </text>
+
+
+~~MONKEY~~
+
+#%%
+
+unigram = OrderedDict()
+bigram = OrderedDict()
+trigram = OrderedDict()
+interpolation = OrderedDict()
+# make these sorted
+for n in tqdm(params["n"]):
+    for model in params["model"]:
+        testgrams = test_corpus.NGram(n=n,model=model)['count']
+        probabilities = {}
+        for gram in testgrams:
+            probabilities[gram] = train_corpus.GetProbability(input=gram,n=n,model=model)
+
+        sorted_tuples = sorted(probabilities.items(), key=operator.itemgetter(1))
+
+        title = ''
+        if n == 1:
+            unigram[model] = {}
+            for k, v in sorted_tuples:
+                unigram[model][k] = v
+            # unigram[model] = probabilities
+        elif n == 2:
+            bigram[model] = {}
+            for k, v in sorted_tuples:
+                bigram[model][k] = v
+            # bigram[model] = probabilities
+        else:
+            trigram[model] = {}
+            for k, v in sorted_tuples:
+                trigram[model][k] = v
+            # trigram[model] = probabilities
+
+        if n == 3:
+            interpolations = {}
+
+            for gram in testgrams:
+                interpolations[gram] = train_corpus.LinearInterpolation(trigram=gram, model=model)
+            sorted_tuples = sorted(interpolations.items(), key=operator.itemgetter(1))
+            interpolation[model] = {}
+            for k, v in sorted_tuples:
+                interpolation[model][k] = v
+            #interpolation[model] = interpolations
+
+#%%
+
+test = Model(probabilities=bigram['vanilla'], n=2, model='vanilla')
+
+#%%
+
+print(test.Perplexity())
+print(test_corpus.Model().Perplexity())
+
+#%%
+
+# Print 5 tables as shown in pdf
+
+heading =   "\t\t|Unigram\t\t|\tBigram\t\t\t|\tTrigram\t\t\t|\tLinear  Interpolation"
+line =  "************************************************************************************************************"\
+        "******************"
+
+data_template =     "Vanilla\t|\t{}:{:.1f}%\t|\t{}:{:.1f}%\t|\t{}:{:.1f}%\t|\t{}:{:.1f}%\n" \
+                    "Laplace\t|\t{}:{:.1f}%\t|\t{}:{:.1f}%\t|\t{}:{:.1f}%\t|\t{}:{:.1f}%\n" \
+                    "UNK\t|\t{}:{:.1f}%\t|\t{}:{:.1f}%\t|\t{}:{:.1f}%\t|\t{}:{:.1f}%"
+
+
+for i in range(min(len(unigram["unk"]), 5)):
+    i = -i
+    print(heading)
+    print(line)
+    print(data_template.format(
+            " ".join([f'{x[:5]:<5}' for x in list(unigram["vanilla"].keys())[i]]), (unigram["vanilla"][list(unigram["vanilla"].keys())[i]]) * 100,
+            " ".join([f'{x[:5]:<5}' for x in list(bigram["vanilla"].keys())[i]]), (bigram["vanilla"][list(bigram["vanilla"].keys())[i]]) * 100,
+            " ".join([f'{x[:5]:<5}' for x in list(trigram["vanilla"].keys())[i]]), (trigram["vanilla"][list(trigram["vanilla"].keys())[i]]) * 100,
+            " ".join([f'{x[:5]:<5}' for x in list(interpolation["vanilla"].keys())[i]]), (interpolation["vanilla"][list(interpolation["vanilla"].keys())[i]]) * 100,
+            " ".join([f'{x[:5]:<5}' for x in list(unigram["laplace"].keys())[i]]), (unigram["laplace"][list(unigram["laplace"].keys())[i]]) * 100,
+            " ".join([f'{x[:5]:<5}' for x in list(bigram["laplace"].keys())[i]]), (bigram["laplace"][list(bigram["laplace"].keys())[i]]) * 100,
+            " ".join([f'{x[:5]:<5}' for x in list(trigram["laplace"].keys())[i]]), (trigram["laplace"][list(trigram["laplace"].keys())[i]]) * 100,
+            " ".join([f'{x[:5]:<5}' for x in list(interpolation["laplace"].keys())[i]]), (interpolation["laplace"][list(interpolation["laplace"].keys())[i]]) * 100,
+            " ".join([f'{x[:5]:<5}' for x in list(unigram["unk"].keys())[i]]), (unigram["unk"][list(unigram["unk"].keys())[i]]) * 100,
+            " ".join([f'{x[:5]:<5}' for x in list(bigram["unk"].keys())[i]]), (bigram["unk"][list(bigram["unk"].keys())[i]]) * 100,
+            " ".join([f'{x[:5]:<5}' for x in list(trigram["unk"].keys())[i]]), (trigram["unk"][list(trigram["unk"].keys())[i]]) * 100,
+            " ".join([f'{x[:5]:<5}' for x in list(interpolation["unk"].keys())[i]]), (interpolation["unk"][list(interpolation["unk"].keys())[i]]) * 100))
+    print(line)
+
+#%%
+
+# do generations here
+
+#%%
+
+#print(Corpus(test,verbose=True).Model(n=2).Perplexity())

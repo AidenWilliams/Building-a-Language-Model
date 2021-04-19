@@ -69,7 +69,7 @@ class Corpus(object):
     def CorpusAsListOfSentences(root='Corpus/', verbose=False):
         roots = Corpus._ParseAsXML(root, verbose)
         sentences = []
-        for root in tqdm(roots, desc='XML File', disable=not verbose):
+        for root in tqdm(roots, desc='Building Sentences', disable=not verbose):
             for i, p in tqdm(enumerate(root), desc='Paragraph', disable=not verbose):
                 for k, s in enumerate(p):
                     unfiltered_sentence = re.split(r'\n', s.text.lstrip('\n'))
@@ -204,9 +204,9 @@ class Corpus(object):
                                     'str, str]].')
 
             if paragraph:
-                tc = Corpus(input)
+                tc = Corpus(input, verbose=verbose)
             else:
-                tc = Corpus([input])
+                tc = Corpus([input], verbose=verbose)
 
         _model = self.Model(n=n, model=model, verbose=verbose)
         _ngram = tc.NGram(n=n, model=model, verbose=verbose)
@@ -233,6 +233,9 @@ class Corpus(object):
         return l3 * self.GetProbability(input=[trigram[2], trigram[0], trigram[1]], n=3, model=model, verbose=verbose) + \
                l2 * self.GetProbability(input=[trigram[2], trigram[1]], n=2, model=model, verbose=verbose) + \
                l1 * self.GetProbability(input=trigram[2], n=1, model=model, verbose=verbose)
+
+    def GenerateSentence(self, n=2, model='vanilla', verbose=False):
+        _model = self.Model(n=n, model=model, verbose=verbose)
 
 
 class Model(object):
@@ -269,7 +272,7 @@ class Model(object):
         self.model = model
 
     # ('z', tuple(x, y))
-    def GetProbabilityMath(self, forX, givenY:tuple):
+    def GetProbabilityMath(self, forX, givenY: tuple):
         sequence = givenY + (forX,)
 
         if sequence in self.probabilities:
@@ -282,8 +285,6 @@ class Model(object):
         for p in self.probabilities:
             prob *= self.probabilities[p]['probability']
         if prob == 0:
-            return 0
+            return float("inf")
         else:
             return prob ** -(1 / self.N)
-
-
