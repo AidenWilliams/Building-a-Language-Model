@@ -235,7 +235,7 @@ class Corpus(object):
                l2 * self.GetProbability(input=[trigram[2], trigram[1]], n=2, model=model, verbose=verbose) + \
                l1 * self.GetProbability(input=trigram[2], n=1, model=model, verbose=verbose)
 
-    def getClosestTo(self, word, n=2, model='vanilla', verbose=False):
+    def _getClosestTo(self, word, n=2, model='vanilla', verbose=False):
         _ngram = self.NGram(n=n, model=model, verbose=verbose)
 
         word = word if word == '<s>' else self.filterFurther(word)
@@ -266,7 +266,7 @@ class Corpus(object):
 
         if n != 1:
             _model = self.Model(n=n, model=model, verbose=verbose)
-            next = self.getClosestTo(word=startword, n=n, model=model, verbose=verbose)
+            next = self._getClosestTo(word=startword, n=n, model=model, verbose=verbose)
 
             while len(sentence) < 25:
                 for w in next:
@@ -274,7 +274,7 @@ class Corpus(object):
                     if w == '</s>':
                         return sentence[:-1]
 
-                next = self.getClosestTo(word=next[-1], n=n, model=model, verbose=verbose)
+                next = self._getClosestTo(word=next[-1], n=n, model=model, verbose=verbose)
         else:
             _ngram = self.NGram(n=n, model=model, verbose=verbose)
             highestk = ''
@@ -352,6 +352,3 @@ class Model(object):
             return float("inf")
         else:
             return prob ** -(1 / self.N)
-
-train_corpus = Corpus(directory='Test Corpus')
-print(train_corpus.GenerateSentence(n=1))
