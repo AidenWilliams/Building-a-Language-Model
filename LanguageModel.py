@@ -4,6 +4,7 @@ from tqdm.notebook import tqdm
 import os
 from collections import defaultdict
 import numpy as np
+import random
 
 
 class Corpus(object):
@@ -234,9 +235,39 @@ class Corpus(object):
                l2 * self.GetProbability(input=[trigram[2], trigram[1]], n=2, model=model, verbose=verbose) + \
                l1 * self.GetProbability(input=trigram[2], n=1, model=model, verbose=verbose)
 
-    def GenerateSentence(self, n=2, model='vanilla', verbose=False):
+    def getClosestTo(self, word, n=2, model='vanilla', verbose=False):
         _model = self.Model(n=n, model=model, verbose=verbose)
 
+        word = word if word == '<s>' else self.filterFurther(word)
+
+        keys = [x for x in _model.probabilities.keys() if x[0] == word]
+
+        probsforword = {}
+        highestv = 0
+        highestk = ''
+        for k in keys:
+            probsforword[k] = self.GetProbability(input=k, n=n, model=model, verbose=verbose)
+            if probsforword[k] > highestv:
+                highestk = k
+                highestv = probsforword[k]
+
+        return highestk[1:]
+
+    def GenerateSentence(self, startword=None, n=2, model='vanilla', verbose=False):
+        startword = '<s>' if startword is None else startword
+        sentence = []
+        _model = self.Model(n=n, model=model, verbose=verbose)
+        next = self.getClosestTo(word=startword, n=n, model=model, verbose=verbose)
+
+        while len(sentence) < 25:
+            for w in next:
+                sentence.append(w)
+                if w == '</s>':
+                    return sentence[:-1]
+
+            next = self.getClosestTo(word=next[-1], n=n, model=model, verbose=verbose)
+
+        return sentence
 
 class Model(object):
     def __init__(self, probabilities=None, corpus=None, n=2, model='vanilla', verbose=False):
