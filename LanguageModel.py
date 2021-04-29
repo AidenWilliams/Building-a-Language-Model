@@ -58,8 +58,8 @@ class Corpus(object):
             word = np.char.replace(word, symbols[i], ' ')
         # remove apostrophe
         word = np.char.replace(word, "'", "")
-        # Remove any double spaces
-        word = np.char.replace(word, "  ", " ")
+        # Remove any spaces
+        word = np.char.replace(word, " ", "")
 
         word = str(np.char.lower(word))
         if word == "" or word == " ":
@@ -236,6 +236,9 @@ class Corpus(object):
                l1 * self.GetProbability(input=trigram[2], n=1, model=model, verbose=verbose)
 
     def _getClosestTo(self, word, n=2, model='vanilla', verbose=False):
+        if n == 1:
+            raise Exception('unigrams are unsupported by this function.')
+
         _ngram = self.NGram(n=n, model=model, verbose=verbose)
 
         word = word if word == '<s>' else self.filterFurther(word)
@@ -250,7 +253,7 @@ class Corpus(object):
 
             skipchance = random.randint(0, 9)
 
-            if skipchance == 0:
+            if skipchance == 5:
                 continue
 
             if probsforword[k] > highestv and k != '<s>':
@@ -288,7 +291,7 @@ class Corpus(object):
 
                     skipchance = random.randint(0, 9)
 
-                    if skipchance == 0:
+                    if skipchance == 5:
                         continue
 
                     if probsforword[k] > highestv and k[0] != '<s>':
