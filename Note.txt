@@ -144,3 +144,20 @@ for i in range(min(len(unigram["unk"]), 5)):
 #print(Corpus(test,verbose=True).Model(n=2).Perplexity())
 
 #%% md
+
+
+<s id="1">
+Sam	null	null	null
+I	null	null	null
+am	null	null	null
+</s>
+<s id="2">
+I	null	null	null
+do	null	null	null
+not	null	null	null
+like	null	null	null
+green	null	null	null
+eggs	null	null	null
+and	null	null	null
+ham	null	null	null
+</s>

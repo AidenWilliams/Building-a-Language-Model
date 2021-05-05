@@ -304,12 +304,18 @@ class Corpus(object):
 
         return sentence
 
+
 class Model(object):
-    def __init__(self, probabilities=None, corpus=None, n=2, model='vanilla', verbose=False):
+    def __init__(self, corpus, probabilities=None, n=2, model='vanilla', verbose=False):
         if probabilities is None and corpus is None:
             raise Exception('Either a corpus or probabilities must be given.')
-
-        if corpus is not None:
+        if probabilities is not None:
+            self.N = len([w for s in corpus for w in s])
+            _probabilities = {}
+            for p in probabilities:
+                _probabilities[p] = probabilities[p]
+            self.probabilities = _probabilities
+        else:
             V = 0
             cmodel = model
             if model == 'laplace':
@@ -331,11 +337,6 @@ class Model(object):
 
             self.probabilities = _probabilities
 
-        elif probabilities is not None:
-            _probabilities = {}
-            for p in probabilities:
-                _probabilities[p] = probabilities[p]
-            self.probabilities = _probabilities
         self.model = model
 
     # ('z', tuple(x, y))

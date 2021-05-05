@@ -1,24 +1,16 @@
 <text id="parl1">
 <p id="0">
 <s id="0">
-I	null	null	null
-am	null	null	null
-Sam	null	null	null
-</s>
-<s id="1">
-Sam	null	null	null
-I	null	null	null
-am	null	null	null
-</s>
-<s id="2">
-I	null	null	null
-do	null	null	null
-not	null	null	null
-like	null	null	null
-green	null	null	null
-eggs	null	null	null
-and	null	null	null
-ham	null	null	null
+0	null	null	null
+1	null	null	null
+2	null	null	null
+3	null	null	null
+4	null	null	null
+5	null	null	null
+6	null	null	null
+7	null	null	null
+8	null	null	null
+9	null	null	null
 </s>
 </p>
 </text>
