@@ -5,187 +5,14 @@ import os
 from collections import defaultdict
 import numpy as np
 import random
+from typing import Union
 
 
-class Corpus(object):
-    def __init__(self, corpus=None, directory='Corpus/', verbose=False):
-        if corpus is None:
-            self._corpus = self.CorpusAsListOfSentences(directory, verbose)
-        else:
-            self._corpus = corpus
-        identifier = tuple([1, 'vanilla'])
-        self._ngrams = {}
-        self._ngrams[identifier] = self.NGram(n=1, verbose=verbose)
-        self._models = {}
-        self._models[identifier] = self.Model(n=1, verbose=verbose)
 
-    def __len__(self):
-        return len(self._corpus)
 
-    def __iter__(self):
-        for word in self._corpus:
-            yield word
 
-    def __getitem__(self, index):
-        return self._corpus[index]
 
-    # Create functions to free memory once function scope is left
-    @staticmethod
-    def _ReadCorpus(root='Corpus/', verbose=False):
-        if not os.access(root, os.R_OK):
-            print('Check root!!')
-
-        xml_data = []
-
-        for file in tqdm(os.listdir(root), desc='Reading Files', disable=not verbose):
-            xml_data.append(open(os.path.join(root, file), 'r', encoding='utf8').read())  # Read file
-        return xml_data
-
-    @staticmethod
-    def _ParseAsXML(root='Corpus/', verbose=False):
-        parser = etree.XMLParser(recover=True)
-        roots = []
-        xml_data = Corpus._ReadCorpus(root, verbose)
-        for xml in tqdm(xml_data, desc='Parsing XML', disable=not verbose):
-            roots.append(etree.fromstring(xml, parser=parser))
-        return roots
-
-    @staticmethod
-    def filterFurther(word: str):
-        # remove symbols
-        symbols = "!\"#$%&()*+-./:;<=>?@[\]^_`{|}~\n,"
-        for i in range(len(symbols)):
-            word = np.char.replace(word, symbols[i], ' ')
-        # remove apostrophe
-        word = np.char.replace(word, "'", "")
-        # Remove any spaces
-        word = np.char.replace(word, " ", "")
-
-        word = str(np.char.lower(word))
-        if word == "" or word == " ":
-            return None
-        return word
-
-    @staticmethod
-    def CorpusAsListOfSentences(root='Corpus/', verbose=False):
-        roots = Corpus._ParseAsXML(root, verbose)
-        sentences = []
-        for root in tqdm(roots, desc='Building Sentences', disable=not verbose):
-            for i, p in tqdm(enumerate(root), desc='Paragraph', disable=not verbose):
-                for k, s in enumerate(p):
-                    unfiltered_sentence = re.split(r'\n', s.text.lstrip('\n'))
-                    sentence = []
-                    for unfiltered_word in unfiltered_sentence:
-                        if unfiltered_word is not '':
-                            filtered_word = unfiltered_word.split('\t')
-                            full_filter = Corpus.filterFurther(filtered_word[0])
-                            if full_filter is not None:
-                                sentence.append(full_filter)
-
-                    if sentence is not []:
-                        sentence.insert(0, '<s>')
-                        sentences.append(sentence)
-                        sentence.append('</s>')
-        return sentences
-
-    def Counts(self, n, verbose=False):
-        counts = defaultdict(lambda: 0)
-        for s in tqdm(self, desc='Counting x counts', disable=not verbose):
-            for i in range(len(s) + 1):
-                if i < n:
-                    continue
-                sequence = []
-                for x in range(n, 0, -1):
-                    sequence.append(s[i - x])
-                sequence = tuple(sequence)
-
-                counts[sequence] += 1
-
-        return counts
-
-    def NGram(self, n=2, model='vanilla', verbose=False):
-        if n < 1:
-            raise Exception('Unigrams and up are supported, otherwise no.')
-
-        if model != 'vanilla' and \
-                model != 'laplace' and \
-                model != 'unk':
-            raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
-
-        identifier = tuple([n, model])
-        if identifier in self._ngrams:
-            if self._ngrams[identifier]['model'] == model:
-                return self._ngrams[identifier]
-
-        if model == 'laplace' or model == 'vanilla':
-            counts = self.Counts(n=n, verbose=verbose)
-
-        else:
-            _count = self.Counts(n=1, verbose=verbose)
-            tc = []
-            for s in self:
-                ts = []
-                for w in s:
-                    if _count[tuple([w])] < 3:
-                        ts.append('UNK')
-                    else:
-                        ts.append(w)
-                tc.append(ts)
-
-            temp = Corpus(corpus=tc, verbose=verbose)
-            counts = temp.Counts(n=n, verbose=verbose)
-
-        result = {
-            'count': counts,
-            'model': model
-        }
-
-        self._ngrams[identifier] = result
-        return self._ngrams[identifier]
-
-    def GetCount(self, sequence: tuple, model='vanilla', verbose=False):
-        '''
-        sequence: tuple, model='vanilla', verbose=False
-        :param sequence:
-        :param model:
-        :param verbose:
-        :return:
-        '''
-        n = len(sequence)
-        if n < 1:
-            raise Exception('Unigrams and up are supported, otherwise no.')
-
-        if model != 'vanilla' and \
-                model != 'laplace' and \
-                model != 'unk':
-            raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
-
-        _ngram = self.NGram(n=n, model=model, verbose=verbose)['count']
-
-        if sequence in _ngram:
-            return _ngram[sequence] + int(model == 'laplace')
-        else:
-            if model == 'laplace':
-                return 1
-            else:
-                return 0
-
-    def Model(self, n=2, model='vanilla', verbose=False):
-        if n < 1:
-            raise Exception('Unigrams and up are supported, otherwise no.')
-
-        if model != 'vanilla' and \
-                model != 'laplace' and \
-                model != 'unk':
-            raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
-
-        identifier = tuple([n, model])
-        if identifier in self._models:
-            if self._models[identifier].model == model:
-                return self._models[identifier]
-
-        self._models[identifier] = Model(corpus=self, n=n, model=model, verbose=verbose)
-        return self._models[identifier]
+class asdasd(object):
 
     def GetProbability(self, input, n, model='vanilla', verbose=False):
         if n < 1:
@@ -354,10 +181,9 @@ class Model(object):
             return self.probabilities[sequence]
         else:
             if self.model == 'laplace':
-                return 1/self.corpus.GetCount(sequence=givenY, model=self.model)
+                return 1 / self.corpus.GetCount(sequence=givenY, model=self.model)
             else:
                 return 0
-
 
     def Perplexity(self):
         counts = self.corpus.NGram(n, model=cmodel, verbose=verbose)['count']
