@@ -24,14 +24,14 @@ class NGramModel(object):
             cmodel = model
             if model == 'laplace':
                 cmodel = 'vanilla'
-                V = len(NGramCounts(corpus=lm.corpus, n=1, verbose=verbose)['count'])
+                V = len(NGramCounts(corpus=lm.corpus, n=1, verbose=verbose))
 
             ngram = lm.GetNGramCounts(n=n, model=cmodel, verbose=verbose)
 
             _probabilities = {}
 
             if n is not 1:
-                previous = lm.GetNGramCounts(n=n - 1, model=cmodel, verbose=verbose)['count']
+                previous = lm.GetNGramCounts(n=n - 1, model=cmodel, verbose=verbose)
                 for x in ngram:
                     _probabilities[x] = (ngram.GetCount(sequence=x)) / \
                                         (previous.GetCount(x[:n - 1]) + V)

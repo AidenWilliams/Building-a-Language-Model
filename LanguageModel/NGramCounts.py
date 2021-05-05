@@ -45,6 +45,9 @@ class NGramCounts(object):
     def __getitem__(self, item):
         return self._ngram[item]
 
+    def __len__(self):
+        return len(self._ngram)
+
     @staticmethod
     def Counts(n, corpus=Union[List[List[str]], Corpus], verbose=False):
         counts = defaultdict(lambda: 0)

@@ -119,7 +119,7 @@ class LanguageModel(object):
         exists = False
         for _n in _ngram['count']:
             exists = True
-            input_probability *= _model.GetProbabilityMath(_n[-1], _n[:n - 1]) ** tlm.GetCount(_n, model=model)
+            input_probability *= self.GetProbabilityMath(_n[-1], _n[:n - 1], model=model) ** tlm.GetCount(_n, model=model)
 
         if not exists:
             input_probability = 0
