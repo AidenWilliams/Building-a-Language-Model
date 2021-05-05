@@ -3,11 +3,11 @@ import re
 from tqdm.notebook import tqdm
 import os
 import numpy as np
-from typing import Union, List, Any
+from typing import Union, List
 
 
 class Corpus(object):
-    def __init__(self, corpus=Union[List[List[Union[str, Any]]], None], directory='Corpus/', verbose=False):
+    def __init__(self, corpus=Union[List[List[str]], None], directory='Corpus/', verbose=False):
         if corpus is None:
             self._corpus = self.CorpusAsListOfSentences(directory, verbose)
         else:

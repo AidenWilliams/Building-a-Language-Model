@@ -1,17 +1,14 @@
 from LanguageModel.Corpus import Corpus
+from LanguageModel import models
 from tqdm.notebook import tqdm
 from collections import defaultdict
+from typing import Union, List
 
 
 class NGramCounts(object):
-    def __init__(self, corpus: Corpus, n=2, model='vanilla', verbose=False):
+    def __init__(self, corpus=Union[List[List[str]], Corpus], n=2, model=models, verbose=False):
         if n < 1:
             raise Exception('Unigrams and up are supported, otherwise no.')
-
-        if model != 'vanilla' and \
-                model != 'laplace' and \
-                model != 'unk':
-            raise Exception('Only "vanilla"/"laplace"/"unk" models are supported.')
 
         if model == 'laplace' or model == 'vanilla':
             counts = self.Counts(n=n, corpus=corpus, verbose=verbose)
@@ -36,11 +33,15 @@ class NGramCounts(object):
     def __repr__(self):
         return self._ngram
 
+    def __iter__(self):
+        for sequence in self._ngram:
+            yield sequence
+
     def __getitem__(self, item):
         return self._ngram[item]
 
     @staticmethod
-    def Counts(n, corpus: Corpus, verbose=False):
+    def Counts(n, corpus=Union[List[List[str]], Corpus], verbose=False):
         counts = defaultdict(lambda: 0)
 
         for s in tqdm(corpus, desc='Counting x counts', disable=not verbose):

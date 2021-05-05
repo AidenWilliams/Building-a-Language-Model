@@ -1,11 +1,12 @@
 from LanguageModel.NGramCounts import NGramCounts
-from LanguageModel import LanguageModel
+from LanguageModel import LanguageModel, models
 
 
 class NGramModel(object):
-    def __init__(self, lm: LanguageModel, testProbabilities=None, n=2, model='vanilla', verbose=False):
+    def __init__(self, lm: LanguageModel, testProbabilities=None, n=2, model=models, verbose=False):
         self.identifier = tuple([n, model])
         self.lm = lm
+        self.N = len([w for s in lm.corpus for w in s])
 
         if testProbabilities is not None:
             _probabilities = {}
@@ -22,7 +23,6 @@ class NGramModel(object):
             ngram = lm.GetNGramCounts(n=n, model=cmodel, verbose=verbose)
 
             _probabilities = {}
-            self.N = len([w for s in lm.corpus for w in s])
 
             if n is not 1:
                 previous = lm.GetNGramCounts(n=n - 1, model=cmodel, verbose=verbose)['count']
@@ -39,19 +39,10 @@ class NGramModel(object):
     def __repr__(self):
         return self._probabilities
 
+    def __iter__(self):
+        for sequence in self._probabilities:
+            yield sequence
+
     def __getitem__(self, item):
         return self._probabilities[item]
 
-    # move to Language Model
-    # ('z', tuple(x, y))
-    def GetProbabilityMath(self, forX, givenY: tuple):
-        sequence = givenY + (forX,)
-
-        if sequence in self:
-            return self[sequence]
-        else:
-            if self.identifier[1] == 'laplace':
-                return 1 / \
-                       self.lm.GetNGramCounts(n=self.identifier[0], model=self.identifier[1]).GetCount(sequence=givenY)
-            else:
-                return 0
