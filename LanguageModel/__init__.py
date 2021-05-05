@@ -8,7 +8,6 @@ from LanguageModel.Corpus import Corpus
 class LanguageModel(object):
     def __init__(self, corpus=Union[str, Corpus], ngram=Union[NGramCounts, None], model=Union[NGramModel, None],
                  verbose=False):
-
         # Get corpus
         if isinstance(corpus, str):
             self.corpus = Corpus.CorpusAsListOfSentences(corpus, verbose)

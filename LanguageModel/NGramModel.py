@@ -1,12 +1,11 @@
-from LanguageModel.Corpus import Corpus
 from LanguageModel.NGramCounts import NGramCounts
 from LanguageModel import LanguageModel
-from typing import Union, List, Any, Dict
 
 
-class NGramModel(object): #Dict
+class NGramModel(object):
     def __init__(self, lm: LanguageModel, testProbabilities=None, n=2, model='vanilla', verbose=False):
         self.identifier = tuple([n, model])
+        self.lm = lm
 
         if testProbabilities is not None:
             _probabilities = {}
@@ -43,6 +42,7 @@ class NGramModel(object): #Dict
     def __getitem__(self, item):
         return self._probabilities[item]
 
+    # move to Language Model
     # ('z', tuple(x, y))
     def GetProbabilityMath(self, forX, givenY: tuple):
         sequence = givenY + (forX,)
@@ -51,6 +51,7 @@ class NGramModel(object): #Dict
             return self[sequence]
         else:
             if self.identifier[1] == 'laplace':
-                return 1 / self.corpus.GetCount(sequence=givenY, model=self.model)
+                return 1 / \
+                       self.lm.GetNGramCounts(n=self.identifier[0], model=self.identifier[1]).GetCount(sequence=givenY)
             else:
                 return 0
