@@ -1,8 +1,10 @@
 from typing import Union, List
+from tqdm.notebook import tqdm
+import numpy as np
+import random
 from LanguageModel.NGramModel import NGramModel
 from LanguageModel.NGramCounts import NGramCounts
 from LanguageModel.Corpus import Corpus
-import random
 
 
 class LanguageModel(object):
@@ -117,7 +119,7 @@ class LanguageModel(object):
 
         input_probability = 1
         exists = False
-        for _n in _ngram['count']:
+        for _n in _ngram:
             exists = True
             input_probability *= self.GetProbabilityMath(_n[-1], _n[:n - 1], model=model) ** tlm.GetCount(_n, model=model)
 
@@ -154,8 +156,8 @@ class LanguageModel(object):
         _model = self.GetNGramModel(n=n, model=model, verbose=verbose)
 
         prob = 1
-        for p in _model:
-            prob *= _model[p]
+        for p in tqdm(_model, desc='Calculating Perplexity', disable=not verbose):
+            prob *= self.GetProbability(p, n=2, model='vanilla', verbose=False)
         if prob == 0:
             return float("inf")
         else:
@@ -171,28 +173,18 @@ class LanguageModel(object):
         if n == 1:
             raise ValueError('unigrams are unsupported by this function.')
 
-        _ngram = self.GetNGramCounts(n=n, model=model, verbose=verbose)
+        _model = self.GetNGramModel(n=n, model=model, verbose=verbose)
 
-        word = word if word == '<s>' else self.corpus.filterFurther(word)
+        word = word if word == '<s>' else Corpus.filterFurther(word)
 
-        keys = [x for x in _ngram['count'].keys() if x[0] == word]
+        values = [_model[x] for x in _model if x[0] == word]
 
-        probsforword = {}
-        highestv = 0
-        highestk = ''
-        for k in keys:
-            probsforword[k] = self.GetProbability(input=k, n=n, model=model, verbose=verbose)
-
-            skipchance = random.randint(0, 9)
-
-            if skipchance == 5:
-                continue
-
-            if probsforword[k] > highestv and k != '<s>':
-                highestk = k
-                highestv = probsforword[k]
-
-        return highestk[1:]
+        weights = np.array(values)
+        normalized_weights = weights / np.sum(weights)
+        resample_counts = np.random.multinomial(1, normalized_weights)
+        chosenKey = list(resample_counts).index(1)
+        chosenVal = list(_model)[chosenKey]
+        return chosenVal
 
     def GenerateSentence(self, startword='<s>', n=2, model='vanilla', verbose=False):
         sentence = []
@@ -211,27 +203,18 @@ class LanguageModel(object):
 
                 next = self._getClosestTo(word=next[-1], n=n, model=model, verbose=verbose)
         else:
-            _ngram = self.NGram(n=n, model=model, verbose=verbose)
-            highestk = ''
+            unigram = self.GetNGramModel(n=1, model=model, verbose=verbose)
+            chosenVal = ''
 
-            while len(sentence) < 25 and highestk != '</s>':
-                probsforword = {}
-                highestv = 0
-                highestk = ''
-                for k in _ngram['count']:
-                    probsforword[k] = self.GetProbability(input=k, n=n, model=model, verbose=verbose)
+            while len(sentence) < 25 and chosenVal != '</s>':
+                weights = np.array(list(unigram.values()))
+                normalized_weights = weights / np.sum(weights)
+                resample_counts = np.random.multinomial(1, normalized_weights)
+                chosenKey = list(resample_counts).index(1)
+                chosenVal = list(unigram)[chosenKey]
 
-                    skipchance = random.randint(0, 9)
-
-                    if skipchance == 5:
-                        continue
-
-                    if probsforword[k] > highestv and k[0] != '<s>':
-                        highestk = k
-                        highestv = probsforword[k]
-
-                sentence.append(highestk[0])
-                if highestk[0] == '</s>':
+                sentence.append(chosenVal[0])
+                if chosenVal == '</s>':
                     return sentence[:-1]
 
         return sentence

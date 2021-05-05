@@ -1,15 +1,14 @@
 from LanguageModel.NGramCounts import NGramCounts
 import LanguageModel
+from tqdm.notebook import tqdm
 
 
 class NGramModel(object):
     def __init__(self, lm: LanguageModel, testProbabilities=None, n=2, model='vanilla', verbose=False):
-
         if model != 'vanilla' and \
                 model != 'laplace' and \
                 model != 'unk':
             raise ValueError('Only "vanilla"/"laplace"/"unk" models are supported.')
-
 
         self.identifier = tuple([n, model])
         self.N = len([w for s in lm.corpus for w in s])
@@ -32,11 +31,11 @@ class NGramModel(object):
 
             if n is not 1:
                 previous = lm.GetNGramCounts(n=n - 1, model=cmodel, verbose=verbose)
-                for x in ngram:
+                for x in tqdm(ngram, desc='Calculating Probabilities', disable=not verbose):
                     _probabilities[x] = (ngram.GetCount(sequence=x)) / \
                                         (previous.GetCount(x[:n - 1]) + V)
             else:
-                for x in ngram:
+                for x in tqdm(ngram, desc='Calculating Probabilities', disable=not verbose):
                     _probabilities[x] = (ngram.GetCount(sequence=x)) / \
                                         (self.N + V)
 
@@ -52,3 +51,5 @@ class NGramModel(object):
     def __getitem__(self, item):
         return self._probabilities[item]
 
+    def values(self):
+        return self._probabilities.values()
