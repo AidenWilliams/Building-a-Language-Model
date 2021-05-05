@@ -120,10 +120,6 @@ class Corpus(object):
         if model == 'laplace' or model == 'vanilla':
             counts = self.Counts(n=n, verbose=verbose)
 
-            if model == 'laplace':
-                for x in counts:
-                    counts[x] += 1
-
         else:
             _count = self.Counts(n=1, verbose=verbose)
             tc = []
