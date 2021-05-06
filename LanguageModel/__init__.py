@@ -1,6 +1,6 @@
 from typing import Union, List
 from tqdm.notebook import tqdm
-import numpy as np
+from mpmath import mp
 import random
 from LanguageModel.NGramModel import NGramModel
 from LanguageModel.NGramCounts import NGramCounts
@@ -92,14 +92,14 @@ class LanguageModel(object):
         if sequence in _model:
             return _model[sequence]
         else:
-            if model == 'laplace':
+            if model != 'vanilla':
                 return 1 / \
                        self.GetCount(sequence=givenY, model=model)
             else:
                 return 0
 
     def GetProbability(self, input=Union[str, List[str], List[List[str]]],
-                       n=2, model='vanilla', verbose=False):
+                       n=2, model='vanilla'):
 
         if model != 'vanilla' and \
                 model != 'laplace' and \
@@ -107,15 +107,15 @@ class LanguageModel(object):
             raise ValueError('Only "vanilla"/"laplace"/"unk" models are supported.')
 
         if isinstance(input, str):
-            tlm = LanguageModel(corpus=[[input]], verbose=verbose)
+            tlm = LanguageModel(corpus=[[input]])
         else:
             if isinstance(input[0], str):
-                tlm = LanguageModel(corpus=[input], verbose=verbose)
+                tlm = LanguageModel(corpus=[input])
             else:
-                tlm = LanguageModel(corpus=input, verbose=verbose)
+                tlm = LanguageModel(corpus=input)
 
-        _model = self.GetNGramModel(n=n, model=model, verbose=verbose)
-        _ngram = tlm.GetNGramCounts(n=n, model=model, verbose=verbose)
+        _model = self.GetNGramModel(n=n, model=model)
+        _ngram = tlm.GetNGramCounts(n=n, model=model)
 
         input_probability = 1
         exists = False
@@ -128,7 +128,7 @@ class LanguageModel(object):
 
         return input_probability
 
-    def LinearInterpolation(self, trigram, model='vanilla', verbose=False):
+    def LinearInterpolation(self, trigram, model='vanilla'):
 
         if model != 'vanilla' and \
                 model != 'laplace' and \
@@ -142,9 +142,9 @@ class LanguageModel(object):
         l2 = 0.3
         l3 = 0.6
 
-        return l3 * self.GetProbability(input=[trigram[2], trigram[0], trigram[1]], n=3, model=model, verbose=verbose) + \
-               l2 * self.GetProbability(input=[trigram[2], trigram[1]], n=2, model=model, verbose=verbose) + \
-               l1 * self.GetProbability(input=trigram[2], n=1, model=model, verbose=verbose)
+        return l3 * self.GetProbability(input=[trigram[2], trigram[0], trigram[1]], n=3, model=model) + \
+               l2 * self.GetProbability(input=[trigram[2], trigram[1]], n=2, model=model) + \
+               l1 * self.GetProbability(input=trigram[2], n=1, model=model)
 
     def Perplexity(self, n=2, model='vanilla', verbose=False):
 
@@ -155,11 +155,11 @@ class LanguageModel(object):
 
         _model = self.GetNGramModel(n=n, model=model, verbose=verbose)
 
-        prob = 1
+        prob = mp.mpf(1)
         for p in tqdm(_model, desc='Calculating Perplexity', disable=not verbose):
-            prob *= self.GetProbability(p, n=2, model='vanilla', verbose=False)
+            prob *= self.GetProbability(p, n=n, model='vanilla')
         if prob == 0:
-            return float("inf")
+            return mp.mpf("inf")
         else:
             return prob ** -(1 / _model.N)
 
@@ -177,14 +177,13 @@ class LanguageModel(object):
 
         word = word if word == '<s>' else Corpus.filterFurther(word)
 
-        values = [_model[x] for x in _model if x[0] == word]
+        probabilities = [_model[x] for x in _model if x[0] == word]
+        keys = [x for x in _model if x[0] == word]
 
-        weights = np.array(values)
-        normalized_weights = weights / np.sum(weights)
-        resample_counts = np.random.multinomial(1, normalized_weights)
-        chosenKey = list(resample_counts).index(1)
-        chosenVal = list(_model)[chosenKey]
-        return chosenVal
+        if probabilities is not None:
+            return random.choices(list(keys), weights=probabilities, k=1)[0][1:]
+        else:
+            return '</s>'
 
     def GenerateSentence(self, startword='<s>', n=2, model='vanilla', verbose=False):
         sentence = []
@@ -203,18 +202,16 @@ class LanguageModel(object):
 
                 next = self._getClosestTo(word=next[-1], n=n, model=model, verbose=verbose)
         else:
-            unigram = self.GetNGramModel(n=1, model=model, verbose=verbose)
-            chosenVal = ''
+            _model = self.GetNGramModel(n=1, model=model, verbose=verbose)
+            word = '<s>'
 
-            while len(sentence) < 25 and chosenVal != '</s>':
-                weights = np.array(list(unigram.values()))
-                normalized_weights = weights / np.sum(weights)
-                resample_counts = np.random.multinomial(1, normalized_weights)
-                chosenKey = list(resample_counts).index(1)
-                chosenVal = list(unigram)[chosenKey]
+            while len(sentence) < 25 and word != '</s>':
+                probabilities = [_model[x] for x in _model]
+                word = random.choices(list(_model), weights=probabilities, k=1)[0][0]
 
-                sentence.append(chosenVal[0])
-                if chosenVal == '</s>':
+                if word != '<s>':
+                    sentence.append(word)
+                if word == '</s>':
                     return sentence[:-1]
 
         return sentence

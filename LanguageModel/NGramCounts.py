@@ -67,6 +67,6 @@ class NGramCounts(object):
 
     def GetCount(self, sequence: tuple):
         if sequence in self:
-            return self[sequence] + int(self.identifier[1] == 'laplace')
+            return self[sequence] + int(self.identifier[1] != 'vanilla')
         else:
-            return int(self.identifier[1] == 'laplace')
+            return int(self.identifier[1] != 'vanilla')
