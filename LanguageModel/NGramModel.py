@@ -4,7 +4,7 @@ from tqdm.notebook import tqdm
 
 
 class NGramModel(object):
-    """The NGramModel class represent a N-Gram probability model of the Language Model.
+    """The NGramModel class represents a N-Gram probability model of the Language Model.
 
     The object can be identified for any n > 0 and any of the 3 models: "vanilla"/"laplace"/"unk".
 
@@ -12,8 +12,10 @@ class NGramModel(object):
     ----------
     identifier :  tuple([int, str])
         a tuple of the n and model of the NGramCounts.
+
     N : int
         a int number of the number of words in the provided LanguageModel corpus.
+
     _probabilities :  {tuple([str]*n): probability}
         a dict containing n sized sequences in the form of a tuple with their percentage share in the provided
         LanguageModel corpus.
@@ -22,7 +24,7 @@ class NGramModel(object):
         """Initialises the NGramModel from corpus given the identifier combo and a LanguageModel. The NGramModel can
         also be 'copy' constructed from a dict {tuple([str]*n): probability}.
 
-        The process of probability calculation is done in detail via in line comments.
+        The description of probability calculation is done in detail via in line comments.
 
         Raises
         ------

@@ -5,7 +5,7 @@ from typing import Union, List
 
 
 class NGramCounts(object):
-    """The NGramCounts class represent a N-Gram count of the Language Model.
+    """The NGramCounts class represents a N-Gram count of the Language Model.
 
     The object can be identified for any n > 0 and any of the 3 models: "vanilla"/"laplace"/"unk".
 
@@ -13,6 +13,7 @@ class NGramCounts(object):
     ----------
     identifier :  tuple([int, str])
         a tuple of the n and model of the NGramCounts.
+
     _ngram :  defaultdict = {tuple([str]*n): count}
         a dict containing n sized sequences in the form of a tuple with their count in corpus.
     """

@@ -25,7 +25,7 @@ class Corpus(object):
 
     def __init__(self, corpus=Union[List[List[str]], None], directory='Corpus/', verbose=False):
         """Initialises the corpus object, corpus can be copy constructed from any other List[List[str]] variable,
-        otherwise it will be build using the class' functionality.
+        otherwise it will be built using the class' functionality.
         """
         if corpus is None:
             self._corpus = self.CorpusAsListOfSentences(directory, verbose)
@@ -35,8 +35,8 @@ class Corpus(object):
     def __iter__(self):
         """Gives functionality to iterate over _corpus
         """
-        for word in self._corpus:
-            yield word
+        for sentence in self._corpus:
+            yield sentence
 
     def __getitem__(self, index):
         """
