@@ -7,6 +7,8 @@ from LanguageModel.NGramCounts import NGramCounts
 from LanguageModel.Corpus import Corpus
 
 
+# TODO: parameter documentation
+
 class LanguageModel(object):
     def __init__(self, corpus=Union[str, List[List[str]], Corpus], ngram=Union[NGramCounts, None],
                  model=Union[NGramModel, None],
@@ -55,10 +57,6 @@ class LanguageModel(object):
         self._ngrams[identifier] = NGramCounts(corpus=self.corpus, n=n, model=model, verbose=verbose)
         return self._ngrams[identifier]
 
-    def GetCount(self, sequence: tuple, model):
-        _ngram = self.GetNGramCounts(n=len(sequence), model=model)
-        return _ngram.GetCount(sequence)
-
     def GetNGramModel(self, n=2, model='vanilla', verbose=False):
 
         if model != 'vanilla' and \
@@ -88,13 +86,14 @@ class LanguageModel(object):
         n = len(sequence)
 
         _model = self.GetNGramModel(n=n, model=model, verbose=verbose)
+        _ngram = self.GetNGramCounts(n=n, model=model, verbose=verbose)
 
         if sequence in _model:
             return _model[sequence]
         else:
             if model != 'vanilla':
                 return 1 / \
-                       self.GetCount(sequence=givenY, model=model)
+                       _ngram.GetCount(sequence=givenY)
             else:
                 return 0
 
@@ -121,7 +120,7 @@ class LanguageModel(object):
         exists = False
         for _n in _ngram:
             exists = True
-            input_probability *= self.GetProbabilityMath(_n[-1], _n[:n - 1], model=model) ** tlm.GetCount(_n, model=model)
+            input_probability *= self.GetProbabilityMath(_n[-1], _n[:n - 1], model=model) ** _ngram.GetCount(_n)
 
         if not exists:
             input_probability = 0
