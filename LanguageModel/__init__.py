@@ -1,4 +1,4 @@
-from typing import Union, List, Optional
+from typing import Union, List
 from tqdm.notebook import tqdm
 from mpmath import mp
 import random
@@ -8,6 +8,7 @@ from LanguageModel.Corpus import Corpus
 
 
 # TODO: parameter documentation
+# TODO: Check UNK
 
 class LanguageModel(object):
     """The LanguageModel class represents a complete (as far as the assignment requires) N Gram Language Model.
@@ -327,7 +328,7 @@ class LanguageModel(object):
         else:
             return '</s>'
 
-    def GenerateSentence(self, start=Optional[str, List[str]], n=2, model='vanilla', verbose=False):
+    def GenerateSentence(self, start=Union[str, List[str], None], n=2, model='vanilla', verbose=False):
         """ Generates a sentence from startword given n and model.
 
         The description of generation is done in detail via in line comments.
