@@ -5,7 +5,32 @@ from typing import Union, List
 
 
 class NGramCounts(object):
+    """The NGramCounts class represent the N-Gram counts of the Language Model.
+
+    The object can be identified for any n > 0 and any of the 3 models: "vanilla"/"laplace"/"unk".
+
+    Attributes
+    ----------
+    identifier :  tuple([int, str])
+        a tuple of the n and model of the NGramCounts.
+    _ngram :  defaultdict = {tuple([str]*n): count}
+        a dict containing n sized sequences in the form of a tuple with their count in corpus.
+    """
     def __init__(self, corpus=Union[List[List[str]], Corpus], n=2, model='vanilla', verbose=False):
+        """Initialises the NGramCounts from corpus given the identifier combo
+
+        If the model is specified to be laplace or vanilla the counts of n sized sequences are taken from the
+        available corpus. Otherwise, if the model is unk, a temp corpus is created using the vanilla unigram counts.
+        If a word is written less than 3 times it is omitted from the new corpus. After this step the counts of n
+        sized sequences are taken from the temp corpus.
+
+        Raises
+        ------
+        ValueError
+            If the model inputted is not "vanilla"/"laplace"/"unk"
+            or
+            If n is smaller than 1
+        """
 
         if model != 'vanilla' and \
                 model != 'laplace' and \
@@ -36,20 +61,51 @@ class NGramCounts(object):
         self._ngram = counts
 
     def __repr__(self):
+        """Allows the representation of NGramCounts as the _ngram dict
+
+        Returns
+        -------
+        _ngram
+        """
         return self._ngram
 
     def __iter__(self):
+        """Gives functionality to iterate over _ngram keys
+        """
         for sequence in self._ngram:
             yield sequence
 
     def __getitem__(self, item):
+        """
+        Returns
+        -------
+        item in _ngram at index
+        """
         return self._ngram[item]
 
     def __len__(self):
+        """
+        Returns
+        -------
+        length of _ngram
+        """
         return len(self._ngram)
 
     @staticmethod
     def Counts(n, corpus=Union[List[List[str]], Corpus], verbose=False):
+        """ Counts the n sized sequences in the given corpus.
+
+        This is done by looping over each sentence, gathering a tuple of each n sized sequence and counting its
+        occurrences.
+
+        Returns
+        -------
+        counts in a dictionary of this form:
+
+        {tuple([str]*n): count}
+
+        Where sequence is a tuple of size n and count is an integer containing the number of counts.
+        """
         counts = defaultdict(lambda: 0)
 
         for s in tqdm(corpus, desc='Counting x counts', disable=not verbose):
@@ -66,6 +122,14 @@ class NGramCounts(object):
         return counts
 
     def GetCount(self, sequence: tuple):
+        """Returns the count of a given n sized sequence.
+
+        Laplace smoothing's count addition is done at this stage.
+
+        Returns
+        -------
+        The count for sequence according to the class' model.
+        """
         if sequence in self:
             return self[sequence] + int(self.identifier[1] != 'vanilla')
         else:

@@ -32,17 +32,8 @@ class Corpus(object):
         else:
             self._corpus = corpus
 
-    def __len__(self):
-        """
-        Returns
-        -------
-        length of _corpus
-        """
-        return len(self._corpus)
-
     def __iter__(self):
-        """
-        gives functionality to iterate over _corpus
+        """Gives functionality to iterate over _corpus
         """
         for word in self._corpus:
             yield word
@@ -54,6 +45,14 @@ class Corpus(object):
         item in _corpus at index
         """
         return self._corpus[index]
+
+    def __len__(self):
+        """
+        Returns
+        -------
+        length of _corpus
+        """
+        return len(self._corpus)
 
     # Create functions to free memory once function scope is left
     @staticmethod
@@ -122,6 +121,10 @@ class Corpus(object):
         get the words. Then each word found is filtered by only looking at the word value and then filtered using
         filterFurther appended to the sublist. The <s> and </s> tokens are inserted in their place and considered as
         words.
+
+        Returns
+        -------
+        A corpus, read from root in List[List[str]] format
         """
         roots = Corpus._ParseAsXML(root, verbose)
         sentences = []
@@ -142,4 +145,3 @@ class Corpus(object):
                         sentences.append(sentence)
                         sentence.append('</s>')
         return sentences
-help(Corpus)
