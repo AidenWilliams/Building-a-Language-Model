@@ -3,7 +3,7 @@ import LanguageModel
 from tqdm.notebook import tqdm
 
 
-class K(object):
+class NGramModel(object):
     """The NGramModel class represent a N-Gram probability model of the Language Model.
 
     The object can be identified for any n > 0 and any of the 3 models: "vanilla"/"laplace"/"unk".
@@ -83,7 +83,7 @@ class K(object):
 
         Returns
         -------
-        _ngram
+        _probabilities
         """
         return self._probabilities
 
