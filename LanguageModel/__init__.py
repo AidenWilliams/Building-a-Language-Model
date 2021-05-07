@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Optional
 from tqdm.notebook import tqdm
 from mpmath import mp
 import random
@@ -327,7 +327,7 @@ class LanguageModel(object):
         else:
             return '</s>'
 
-    def GenerateSentence(self, startword='<s>', n=2, model='vanilla', verbose=False):
+    def GenerateSentence(self, start=Optional[str, List[str]], n=2, model='vanilla', verbose=False):
         """ Generates a sentence from startword given n and model.
 
         The description of generation is done in detail via in line comments.
@@ -350,11 +350,21 @@ class LanguageModel(object):
 
         if n == 1:
             raise ValueError('unigrams are unsupported by this function.')
+
+        if start is None:
+            start = '<s>'
+
         # Initialise the return sentence
         sentence = []
         # Add startword if it isnt the start token
-        if startword != '<s>':
-            sentence.append(startword)
+        if isinstance(start, str):
+            if start != '<s>':
+                sentence.append(start)
+        else:
+            for w in start:
+                if w != '<s>':
+                    sentence.append(w)
+            start = sentence[-1]
 
         # Get the model
         _model = self.GetNGramModel(n=n, model=model, verbose=verbose)
@@ -362,7 +372,7 @@ class LanguageModel(object):
         # Two methods are used, based on whether n is 1 or not
         if n != 1:
             # get the first next set of words
-            next = self._getClosestTo(word=startword, n=n, model=model, verbose=verbose)
+            next = self._getClosestTo(word=start, n=n, model=model, verbose=verbose)
 
             # Continue generating until either </s> is found or the sentence is 25 words long.
             # 25 is purely arbitrary
@@ -378,17 +388,17 @@ class LanguageModel(object):
         else:
             # similar to the _getClosestTo function...
             # Continue generating until either </s> is found or the sentence is 25 words long.
-            while len(sentence) < 25 and startword != '</s>':
+            while len(sentence) < 25 and start != '</s>':
                 # Get the weighted probabilities
                 probabilities = [_model[x] for x in _model]
                 # Get a random word from the model
-                startword = random.choices(list(_model), weights=probabilities, k=1)[0][0]
+                start = random.choices(list(_model), weights=probabilities, k=1)[0][0]
 
                 # Ignore start tokens
-                if startword != '<s>':
-                    sentence.append(startword)
+                if start != '<s>':
+                    sentence.append(start)
                 # Stop when the end token is found
-                if startword == '</s>':
+                if start == '</s>':
                     return sentence[:-1]
 
         return sentence
