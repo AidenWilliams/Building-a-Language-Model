@@ -161,3 +161,48 @@ eggs	null	null	null
 and	null	null	null
 ham	null	null	null
 </s>
+
+help(NGramModel)
+#%%
+
+LM = LanguageModel(corpus="Corpus/", verbose=True)
+
+#%%
+
+LM.Perplexity(n=3, verbose=True)
+
+#%%
+
+generated = LM.GenerateSentence(n=1, verbose=True)
+for w in generated:
+    print(w, end=' ')
+
+print(".")
+
+#%%
+
+generated = LM.GenerateSentence(verbose=True)
+for w in generated:
+    print(w, end=' ')
+
+print(".")
+
+#%%
+
+generated = LM.GenerateSentence(n=3, verbose=True)
+for w in generated:
+    print(w, end=' ')
+
+print(".")
+
+#%%
+
+generated = LM.GenerateSentence(n=4, verbose=True)
+for w in generated:
+    print(w, end=' ')
+
+print(".")
+#%%
+
+x = tuple(['x', 'y', 'z'])
+x[:3-1]
