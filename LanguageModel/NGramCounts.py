@@ -5,7 +5,7 @@ from typing import Union, List
 
 
 class NGramCounts(object):
-    """The NGramCounts class represent the N-Gram counts of the Language Model.
+    """The NGramCounts class represent a N-Gram count of the Language Model.
 
     The object can be identified for any n > 0 and any of the 3 models: "vanilla"/"laplace"/"unk".
 
@@ -70,7 +70,7 @@ class NGramCounts(object):
         return self._ngram
 
     def __iter__(self):
-        """Gives functionality to iterate over _ngram keys
+        """Gives functionality to iterate over _ngram
         """
         for sequence in self._ngram:
             yield sequence
