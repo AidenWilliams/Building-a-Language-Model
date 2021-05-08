@@ -27,6 +27,7 @@ class LanguageModel(object):
     _models :  dict
         a dictionary of NGramModels.
     """
+
     def __init__(self, corpus=Union[str, List[List[str]], Corpus], ngram=Union[NGramCounts, None],
                  model=Union[NGramModel, None],
                  verbose=False):
@@ -117,6 +118,17 @@ class LanguageModel(object):
         self._models[identifier] = NGramModel(self, n=n, model=model, verbose=verbose)
         return self._models[identifier]
 
+    def SetNGramModel(self, probabilities: dict, n: int, model: str, verbose=False):
+        if model != 'vanilla' and \
+                model != 'laplace' and \
+                model != 'unk':
+            raise ValueError('Only "vanilla"/"laplace"/"unk" models are supported.')
+
+        if n < 1:
+            raise ValueError('Unigrams and up are supported, otherwise no.')
+        identifier = tuple([n, model])
+        self._models[identifier] = NGramModel(self, testProbabilities=probabilities, n=n, model=model, verbose=verbose)
+
     def GetProbabilityMath(self, forX, givenY: tuple, model='vanilla', verbose=False):
         """Gets the probability forX givenY, for the given model.
 
@@ -197,10 +209,10 @@ class LanguageModel(object):
 
         # initialise the return as 1
         input_probability = mp.mpf(1)
-        #exists = False
+        # exists = False
         # for every ngram in _ngram
         for _n in _ngram:
-            #exists = True
+            # exists = True
             # Raise _n's probability in this LanguageModel to its count.
             # This is done since repeated ngrams in input would be stripped into NGramCounts, and in this loop will not
             # be found again.
@@ -246,7 +258,8 @@ class LanguageModel(object):
                l2 * self.GetProbability(input=[trigram[2], trigram[1]], n=2, model=model) + \
                l1 * self.GetProbability(input=trigram[2], n=1, model=model)
 
-    def Perplexity(self, n=2, model='vanilla', verbose=False):
+    #TODO: Update doc
+    def Perplexity(self, n=2, model='vanilla', linearInterpolation=False, verbose=False):
         """ Calculates the Perplexity for the NGramModel with identifier n, model.
 
         Perplexity is calculated by first multiplying all the probabilities in the NGramModel and then raising this
@@ -276,8 +289,12 @@ class LanguageModel(object):
 
         prob = mp.mpf(1)
         # Multiply all the probabilities in the NGramModel
-        for p in tqdm(_model, desc='Calculating Perplexity', disable=not verbose):
-            prob *= self.GetProbability(p, n=n, model='vanilla')
+        if linearInterpolation:
+            for p in tqdm(_model, desc='Calculating Perplexity', disable=not verbose):
+                prob *= self.LinearInterpolation(p, model=model)
+        else:
+            for p in tqdm(_model, desc='Calculating Perplexity', disable=not verbose):
+                prob *= self.GetProbability(p, n=n, model=model)
 
         # Shouldn't be 0 because of mp but jic
         if prob == 0:
