@@ -221,7 +221,7 @@ class LanguageModel(object):
         # if not exists:
         #     input_probability = 0
 
-        return input_probability
+        return float(input_probability)
 
     def LinearInterpolation(self, trigram, model='vanilla'):
         """ Gets the probability for a trigram using Linear Interpolation, given model.
@@ -301,7 +301,8 @@ class LanguageModel(object):
             return 0
         else:
             # raise result of multiplications to -(1 / N).
-            return prob ** -(1 / _model.N)
+
+            return float(prob ** -(1 / _model.N))
 
     def _getClosestTo(self, word, n=2, model='vanilla', verbose=False):
         """ Gets the ngram closest to word for the NGramModel with identifier n, model.
@@ -313,7 +314,7 @@ class LanguageModel(object):
         ValueError
             If the model inputted is not "vanilla"/"laplace"/"unk"
             or
-            If n is smaller than 0
+            If n is 1
 
         Returns
         -------
@@ -337,13 +338,13 @@ class LanguageModel(object):
         # Get the keys
         keys = [x for x in _model if x[0] == word]
 
-        if probabilities is not None:
+        if len(probabilities) != 0:
             # If there's something choose 1 ngram given the weights
             # [0] is added as random.choices returns a list
             # and [1:] to remove the word from the tuple chosen
             return random.choices(list(keys), weights=probabilities, k=1)[0][1:]
         else:
-            return '</s>'
+            return ['</s>']
 
     def GenerateSentence(self, start=Union[str, List[str], None], n=2, model='vanilla', verbose=False):
         """ Generates a sentence from startword given n and model.
@@ -366,8 +367,8 @@ class LanguageModel(object):
                 model != 'unk':
             raise ValueError('Only "vanilla"/"laplace"/"unk" models are supported.')
 
-        if n == 1:
-            raise ValueError('unigrams are unsupported by this function.')
+        if n < 1:
+            raise ValueError('Unigrams and up are supported, otherwise no.')
 
         if start is None:
             start = '<s>'
