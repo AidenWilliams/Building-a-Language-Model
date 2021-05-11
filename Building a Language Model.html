@@ -14287,7 +14287,7 @@ jupyter server. Alternatively I used the Jetbrains Pycharm IDE which also render
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Import the LanguageModel package</span>
-<span class="kn">import</span> <span class="nn">LanguageModel</span> <span class="k">as</span> <span class="nn">lm</span>
+<span class="kn">import</span> <span class="nn">LanguageModel</span> <span class="k">as</span> <span class="nn">LM</span>
 </pre></div>
 
      </div>
@@ -14311,8 +14311,26 @@ when I implemented different counting methods, especially to account for non-app
 slow. By implementing a GetCount function I was able to achieve full functionality with clean code.</p>
 <h2 id="NGramModel">NGramModel<a class="anchor-link" href="#NGramModel">&#182;</a></h2><p>Unlike the with the frequency counts for the probability set I calculate vanilla and laplace smoothed probabilities
 differently. However the various methods of getting the probability for each ngram is then handled by the LanguageModel.</p>
-<h2 id="LanguageModel">LanguageModel<a class="anchor-link" href="#LanguageModel">&#182;</a></h2><p>With the main class of the package I implemented most of the requirements of the assignment. I think I explain the code
-good enough, most of the time with reasoning in the code's docstring and comments.</p>
+<h2 id="LanguageModel">LanguageModel<a class="anchor-link" href="#LanguageModel">&#182;</a></h2><p>For the complete Language Model I mostly followed the class notes and powerpoint presentations. Most of the issues I
+experienced was the implementation of a testing kit. In fact there is none directly implemented. Instead I implemented
+bypasses like with the SetNGramModel being able to create an NGramModel object from an already calculated set of NGram
+probabilities.</p>
+<p>In perplexity calculation I purposefully did not add a case for when the probability of the current ngram is 0. The
+reasoning behind this is that when I added an ignore case, the vanilla models where getting a perplexity near 1, when
+in reality that is very deceiving since the model is not accommodating for a number of test cases. A possible solution
+would have been to instead of ignore 0 probabilities, I would multiply to the current <code>prob</code> variable the smallest
+number that the mpf library supports. However this would have made evaluation still trickier.</p>
+<p>In sentence generation I only implemented it for an input of one word. The reasoning behind it was because in any type
+of ngram the upcoming sequence of words is based on the last word of what has been generated so far. I also think its
+pretty easy and intuitive to implement generation with a prior phrase. Later on in this notebook I write a function that
+does this, below is a snippet of it.</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generateFrom</span><span class="p">(</span><span class="n">start</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">]):</span>
+        <span class="n">sentence</span> <span class="o">=</span> <span class="n">start</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]:</span>
+            <span class="n">generated</span> <span class="o">=</span> <span class="n">train_lm</span><span class="o">.</span><span class="n">GenerateSentence</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">given_and_generated</span> <span class="o">=</span> <span class="n">sentence</span> <span class="o">+</span> <span class="n">generated</span>
+</pre></div>
 
 </div>
 </div>
@@ -14341,6 +14359,9 @@ and unk. This is done for both LanguageModels.</p>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h2 id="Test-Corpus">Test Corpus<a class="anchor-link" href="#Test-Corpus">&#182;</a></h2><p>This corpus was created to test out the features of the package to make sure everything works as it is supposed to.</p>
+<p>In total this corpus has 120 sentences.</p>
+<p>The total runtime for this evaluation was 0m &lt;1s.</p>
+<p>The Memory occupied at the end of this evaluation was at 0.087GB.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14355,10 +14376,10 @@ and unk. This is done for both LanguageModels.</p>
 
 
 <span class="k">def</span> <span class="nf">getTrainTest</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">Corpus</span><span class="o">.</span><span class="n">CorpusAsListOfSentences</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="n">root</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">LM</span><span class="o">.</span><span class="n">Corpus</span><span class="o">.</span><span class="n">CorpusAsListOfSentences</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="n">root</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">train</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">_train_lm</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">LanguageModel</span><span class="p">(</span><span class="n">corpus</span><span class="o">=</span><span class="n">train</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">_test_lm</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">LanguageModel</span><span class="p">(</span><span class="n">corpus</span><span class="o">=</span><span class="n">test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_train_lm</span> <span class="o">=</span> <span class="n">LM</span><span class="o">.</span><span class="n">LanguageModel</span><span class="p">(</span><span class="n">corpus</span><span class="o">=</span><span class="n">train</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_test_lm</span> <span class="o">=</span> <span class="n">LM</span><span class="o">.</span><span class="n">LanguageModel</span><span class="p">(</span><span class="n">corpus</span><span class="o">=</span><span class="n">test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Train Corpus Size: &quot;</span><span class="p">,</span> <span class="n">_train_lm</span><span class="o">.</span><span class="n">GetNGramModel</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">N</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Test Corpus Size: &quot;</span><span class="p">,</span> <span class="n">_test_lm</span><span class="o">.</span><span class="n">GetNGramModel</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">N</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_train_lm</span><span class="p">,</span> <span class="n">_test_lm</span>
@@ -14387,12 +14408,12 @@ and unk. This is done for both LanguageModels.</p>
 
 
 
-<div id="56bdfe9f-6e93-4f41-a0d8-263b7d8569e4" class="jupyter-widgets jp-OutputArea-output ">
+<div id="564563f5-b874-421c-84c1-7ab16a328a76" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('56bdfe9f-6e93-4f41-a0d8-263b7d8569e4');
+var element = document.getElementById('564563f5-b874-421c-84c1-7ab16a328a76');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "69c4c36f2a0a41db84a3f0fe88a2f669"}
+{"model_id": "240be84970764e269548b0747cbc280e", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14409,12 +14430,12 @@ var element = document.getElementById('56bdfe9f-6e93-4f41-a0d8-263b7d8569e4');
 
 
 
-<div id="269962f6-b74b-403c-9191-c58467c1d803" class="jupyter-widgets jp-OutputArea-output ">
+<div id="db7785a7-7fce-48c6-a5cc-675d46f6702c" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('269962f6-b74b-403c-9191-c58467c1d803');
+var element = document.getElementById('db7785a7-7fce-48c6-a5cc-675d46f6702c');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "9da148f41eff4728b51c2fb3abf81be0"}
+{"model_id": "a70501d0f67149d3a715577075bbd318", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14431,12 +14452,12 @@ var element = document.getElementById('269962f6-b74b-403c-9191-c58467c1d803');
 
 
 
-<div id="7e1b9640-50ae-4bc0-ab76-a72382400261" class="jupyter-widgets jp-OutputArea-output ">
+<div id="6d0d6f24-c7cb-4acf-bb21-a099eb824695" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('7e1b9640-50ae-4bc0-ab76-a72382400261');
+var element = document.getElementById('6d0d6f24-c7cb-4acf-bb21-a099eb824695');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "2adffaefedab4a57aebb26454d3aca3b"}
+{"model_id": "ecbd671afe424c71bdda9a1eb9092c39", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14453,12 +14474,12 @@ var element = document.getElementById('7e1b9640-50ae-4bc0-ab76-a72382400261');
 
 
 
-<div id="5f4ae580-9955-4ac8-bc8a-6953f6c7996b" class="jupyter-widgets jp-OutputArea-output ">
+<div id="27100b2f-29d3-418b-b098-b210ff29d772" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('5f4ae580-9955-4ac8-bc8a-6953f6c7996b');
+var element = document.getElementById('27100b2f-29d3-418b-b098-b210ff29d772');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "337367adfc3a4f3794da6fcf180ad265"}
+{"model_id": "821b62ba8cb042c5a9e9a92eb80b9eef", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14475,12 +14496,12 @@ var element = document.getElementById('5f4ae580-9955-4ac8-bc8a-6953f6c7996b');
 
 
 
-<div id="d4c67e8d-a502-4b84-9fab-e6e83684f0c9" class="jupyter-widgets jp-OutputArea-output ">
+<div id="9ee68389-9a06-45f9-8b18-4b9d43f03b6e" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('d4c67e8d-a502-4b84-9fab-e6e83684f0c9');
+var element = document.getElementById('9ee68389-9a06-45f9-8b18-4b9d43f03b6e');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "517fb024f37b479cb86c5ed9277efc5b"}
+{"model_id": "ebb71a2fdeba41d28c97ecf0a03b3991", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14497,12 +14518,12 @@ var element = document.getElementById('d4c67e8d-a502-4b84-9fab-e6e83684f0c9');
 
 
 
-<div id="b1e1ec33-eee4-43f7-8338-ce1dbec70551" class="jupyter-widgets jp-OutputArea-output ">
+<div id="cb549b05-0db8-47a6-b754-f09e8357657d" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('b1e1ec33-eee4-43f7-8338-ce1dbec70551');
+var element = document.getElementById('cb549b05-0db8-47a6-b754-f09e8357657d');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "d1056d0f288e4318afa8bd4798c496a8"}
+{"model_id": "2612ee8f58334e13909d6b7784ff5c11", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14519,12 +14540,12 @@ var element = document.getElementById('b1e1ec33-eee4-43f7-8338-ce1dbec70551');
 
 
 
-<div id="27d74890-5b16-49b4-a0dd-8f76ceebc745" class="jupyter-widgets jp-OutputArea-output ">
+<div id="99ba4adb-b3f6-4f19-87af-12e786064c33" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('27d74890-5b16-49b4-a0dd-8f76ceebc745');
+var element = document.getElementById('99ba4adb-b3f6-4f19-87af-12e786064c33');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "f9db1cd2b6a64f4b83c236d724ae86e3"}
+{"model_id": "3d84e7d7101841809285e2c9da8d51c6", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14541,12 +14562,12 @@ var element = document.getElementById('27d74890-5b16-49b4-a0dd-8f76ceebc745');
 
 
 
-<div id="eaf40bba-052b-4bc8-a9d5-4e428116604d" class="jupyter-widgets jp-OutputArea-output ">
+<div id="fdf7dbb4-cb43-497c-95f4-58c0b457d1be" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('eaf40bba-052b-4bc8-a9d5-4e428116604d');
+var element = document.getElementById('fdf7dbb4-cb43-497c-95f4-58c0b457d1be');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "45630b9966184c2e886af6035960c271"}
+{"model_id": "f189ca1a9d9445ccaca2cfd85495dc10", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14563,12 +14584,12 @@ var element = document.getElementById('eaf40bba-052b-4bc8-a9d5-4e428116604d');
 
 
 
-<div id="b6c7ceb5-aebb-4222-8f71-3674ee94e634" class="jupyter-widgets jp-OutputArea-output ">
+<div id="f062f806-0954-47c6-8839-5ef3705c3884" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('b6c7ceb5-aebb-4222-8f71-3674ee94e634');
+var element = document.getElementById('f062f806-0954-47c6-8839-5ef3705c3884');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "c195ae53d6cb4401b7804e3991b5fb05"}
+{"model_id": "642039b6b9d9462084e61f77625a4bd2", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14585,12 +14606,12 @@ var element = document.getElementById('b6c7ceb5-aebb-4222-8f71-3674ee94e634');
 
 
 
-<div id="b455502b-c1d7-403e-9d2d-109bc8fc5c80" class="jupyter-widgets jp-OutputArea-output ">
+<div id="57eda4b9-3dd1-4135-b31e-68d8e896a92c" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('b455502b-c1d7-403e-9d2d-109bc8fc5c80');
+var element = document.getElementById('57eda4b9-3dd1-4135-b31e-68d8e896a92c');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "cec5e95f932147828a6d2c706c9cf326"}
+{"model_id": "83e4051584e5415c99326f80a40c2d13", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14661,12 +14682,12 @@ end tokens and the test LM has 24 words, 4 of which are start and end tokens.</p
 
 
 
-<div id="e6059827-f218-43c2-957d-c38f7af91f90" class="jupyter-widgets jp-OutputArea-output ">
+<div id="f8a83469-942c-471d-9e91-15d6aef5faf3" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('e6059827-f218-43c2-957d-c38f7af91f90');
+var element = document.getElementById('f8a83469-942c-471d-9e91-15d6aef5faf3');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "516114100e5444eeb30fb4c7abba2a5c"}
+{"model_id": "561dbcb06a134e4c9df21593cd48fd83", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14768,12 +14789,12 @@ var element = document.getElementById('e6059827-f218-43c2-957d-c38f7af91f90');
 
 
 
-<div id="6dcf2954-156f-45cf-9c77-3e6a5c6730e2" class="jupyter-widgets jp-OutputArea-output ">
+<div id="1f4d95b9-3751-40a0-a604-529e46a77783" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('6dcf2954-156f-45cf-9c77-3e6a5c6730e2');
+var element = document.getElementById('1f4d95b9-3751-40a0-a604-529e46a77783');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "2419d9071b7d45e6b7c8e0e483f91a20"}
+{"model_id": "140e3c6aae0749c3830f1342f4a35073", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14973,12 +14994,12 @@ sequence for it to continue.</p>
 
 
 
-<div id="58ebb951-2fd2-4dc3-9f15-7ab96b057c44" class="jupyter-widgets jp-OutputArea-output ">
+<div id="33c9784f-eeda-4a3f-b878-567654e31e2c" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('58ebb951-2fd2-4dc3-9f15-7ab96b057c44');
+var element = document.getElementById('33c9784f-eeda-4a3f-b878-567654e31e2c');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "d829c100e99e4ed49ed2bea053ed1aa3"}
+{"model_id": "22fc76c7254a4956bdb9b7b6e1818ca8", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -14994,12 +15015,12 @@ var element = document.getElementById('58ebb951-2fd2-4dc3-9f15-7ab96b057c44');
 <pre>n: 1
 model: vanilla
 
-23 51 79 30 60 52 69 4 6 .
+8 24 50 76 .
 
 n: 1
 model: laplace
 
-31 46 8 74 56 33 8 .
+11 28 67 15 23 19 59 16 6 29 14 26 10 8 72 41 47 41 67 47 70 24 37 13 55 .
 
 n: 1
 model: unk
@@ -15009,12 +15030,12 @@ model: unk
 n: 2
 model: vanilla
 
-10 11 12 13 14 15 16 17 18 19 .
+0 1 2 3 4 5 6 7 8 9 .
 
 n: 2
 model: laplace
 
-40 41 42 43 44 45 46 47 48 49 .
+60 61 62 63 64 65 66 67 68 69 .
 
 n: 2
 model: unk
@@ -15024,12 +15045,12 @@ model: unk
 n: 3
 model: vanilla
 
-10 11 12 13 14 15 16 17 18 19 .
+20 21 22 23 24 25 26 27 28 29 .
 
 n: 3
 model: laplace
 
-10 11 12 13 14 15 16 17 18 19 .
+50 51 52 53 54 55 56 57 58 59 .
 
 n: 3
 model: unk
@@ -15065,8 +15086,8 @@ model: unk
         <span class="n">sentence</span> <span class="o">=</span> <span class="n">start</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]:</span>
             <span class="n">generated</span> <span class="o">=</span> <span class="n">train_lm</span><span class="o">.</span><span class="n">GenerateSentence</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;n: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">model: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">model</span><span class="p">))</span>
             <span class="n">given_and_generated</span> <span class="o">=</span> <span class="n">sentence</span> <span class="o">+</span> <span class="n">generated</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;n: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">model: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">model</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">given_and_generated</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -15096,12 +15117,12 @@ model: unk
 
 
 
-<div id="bc338482-be8f-4fd8-acb3-b7cd1c53d1e2" class="jupyter-widgets jp-OutputArea-output ">
+<div id="09c7fd41-a634-4f37-8846-c9bdf2fddeb6" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('bc338482-be8f-4fd8-acb3-b7cd1c53d1e2');
+var element = document.getElementById('09c7fd41-a634-4f37-8846-c9bdf2fddeb6');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "fb34533beb074c8fbbd4bfbd8f2b1119"}
+{"model_id": "ad0d8e3fa2674842a60083cc841a9d6f", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -15117,12 +15138,12 @@ var element = document.getElementById('bc338482-be8f-4fd8-acb3-b7cd1c53d1e2');
 <pre>n: 1
 model: vanilla
 
-20 21 22 21 63 16 9 49 66 40 69 25 0 55 18 69 28 1 15 51 .
+20 21 22 1 35 8 22 58 2 28 42 49 21 60 21 2 56 56 9 36 9 50 39 76 77 67 75 .
 
 n: 1
 model: laplace
 
-20 21 22 6 42 8 4 41 75 57 50 3 35 56 23 24 .
+20 21 22 55 12 20 25 51 45 45 2 63 47 17 16 4 .
 
 n: 1
 model: unk
@@ -15178,20 +15199,343 @@ model: unk
 <p>Now I will repeat the above steps for the other corpus</p>
 
 </div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Sports-Corpus">Sports Corpus<a class="anchor-link" href="#Sports-Corpus">&#182;</a></h2><p>This corpus is a subset of the larger complete Maltese corpus.</p>
-
-</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">psutil</span>
+
+<span class="k">def</span> <span class="nf">RAMUsage</span><span class="p">():</span>
+    <span class="n">pid</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span>
+    <span class="n">py</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+    <span class="n">memoryUse</span> <span class="o">=</span> <span class="n">py</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mf">2.</span><span class="o">**</span><span class="mi">30</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Memory Use: &#39;</span><span class="p">,</span><span class="n">memoryUse</span><span class="p">,</span><span class="s1">&#39;GB&#39;</span><span class="p">)</span>
+<span class="n">RAMUsage</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Memory Use:  0.08798980712890625 GB
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Sports-Corpus">Sports Corpus<a class="anchor-link" href="#Sports-Corpus">&#182;</a></h2><p>This corpus is a subset of the larger complete Maltese corpus.</p>
+<p>In total this corpus has 232 sentences.</p>
+<p>The total runtime for this evaluation was 0m &lt;1s.</p>
+<p>The Memory occupied at the end of this evaluation was at 0.136GB.</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[10]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">train_lm</span><span class="p">,</span> <span class="n">test_lm</span> <span class="o">=</span> <span class="n">getTrainTest</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;Sports/&#39;</span><span class="p">)</span>
-<span class="n">fitPredictTrain</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="dbb9b8a2-015a-4f2a-9b8b-150b66a118b3" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('dbb9b8a2-015a-4f2a-9b8b-150b66a118b3');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "42322e5e9e3a4bd2b6d61f04e67e5d97", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="213d5d0c-46c4-403c-a9c5-ef1afb79ce8d" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('213d5d0c-46c4-403c-a9c5-ef1afb79ce8d');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "3be2c4013f674d4880efb66a88e35a8f", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="11325647-18ba-43f7-95c9-e8af8cf0f314" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('11325647-18ba-43f7-95c9-e8af8cf0f314');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "639a375d3e05432fb838b591c6dd7673", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="4d970f6b-cacb-4f36-9f5c-b864e2f35ede" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('4d970f6b-cacb-4f36-9f5c-b864e2f35ede');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "d99e6cc5126c4b3bbd78eb174ee77fe8", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="1bce87d0-8bbf-46e7-9e60-d2f4ad711c0e" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('1bce87d0-8bbf-46e7-9e60-d2f4ad711c0e');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "1db030362fc94476a5d4bf7e42cc8910", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="b3fbcea5-4057-4f60-8419-44d54018dfe2" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('b3fbcea5-4057-4f60-8419-44d54018dfe2');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "faa718f8d6dc40109820149be2a4b58f", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="ac7fc315-df10-4d6a-a648-3b2eefe8c06b" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('ac7fc315-df10-4d6a-a648-3b2eefe8c06b');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "78a93299f7e14dc398fa32a659afa0a5", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="7b119721-7727-48fa-95af-8c14210d2cff" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('7b119721-7727-48fa-95af-8c14210d2cff');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "27448e84a06b451f9e37658b768a1f02", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="a816bc8f-290b-44f8-a97d-48aa108a612c" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('a816bc8f-290b-44f8-a97d-48aa108a612c');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "4286ccb9709f4b049533b33153294e10", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="3e4b2b8a-47c8-4e30-baa4-e743c1cde5b9" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('3e4b2b8a-47c8-4e30-baa4-e743c1cde5b9');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "44ec014444c24c1598b89fb88e3089bf", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="7529921f-deeb-4258-96f5-d778807cf23d" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('7529921f-deeb-4258-96f5-d778807cf23d');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "0de2ed5db6684e56bffbbcbf874b6a3f", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Train Corpus Size:  192
+Test Corpus Size:  40
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[11]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">fitPredictTrain</span><span class="p">()</span>
 <span class="n">unigram</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
 <span class="n">bigram</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
 <span class="n">trigram</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
@@ -15221,12 +15565,12 @@ model: unk
 
 
 
-<div id="d293b8e0-b739-4017-91c6-76d6fbdf9ca1" class="jupyter-widgets jp-OutputArea-output ">
+<div id="0885fd89-5712-45a4-8266-de8b9c3fe085" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('d293b8e0-b739-4017-91c6-76d6fbdf9ca1');
+var element = document.getElementById('0885fd89-5712-45a4-8266-de8b9c3fe085');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "eeb73261cdb74598b2ed756506478148"}
+{"model_id": "4deed193900b451790cdad8a6a65ae55", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -15243,267 +15587,12 @@ var element = document.getElementById('d293b8e0-b739-4017-91c6-76d6fbdf9ca1');
 
 
 
-<div id="edef20bd-9f99-4202-a5fa-3987ee4a2736" class="jupyter-widgets jp-OutputArea-output ">
+<div id="8419dcc5-7da3-484a-8e8c-c483014928a7" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('edef20bd-9f99-4202-a5fa-3987ee4a2736');
+var element = document.getElementById('8419dcc5-7da3-484a-8e8c-c483014928a7');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "81d0a65d5a144aa2b0500b3c1a1c53be"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="a1d4d79a-873e-49bd-960c-c19e12edbdd7" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('a1d4d79a-873e-49bd-960c-c19e12edbdd7');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "15d0df0c3cf74eefb169713d583b9c62"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="8083e688-41ee-4e10-bc77-5e2827593922" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('8083e688-41ee-4e10-bc77-5e2827593922');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "2ce044993ce74bb4b0fe79983a1f9b3d"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="077caab0-8c35-47a3-8638-caf000088e2a" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('077caab0-8c35-47a3-8638-caf000088e2a');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "af076c5c9f824cf7a4721a6bef889ec3"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="9d7221e0-d91f-456b-b947-fe79c625c2f0" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('9d7221e0-d91f-456b-b947-fe79c625c2f0');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "0fe08ebd316243c7aea52d7659ee26cc"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="90214a23-99f4-4644-89a4-b0f2227a06f9" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('90214a23-99f4-4644-89a4-b0f2227a06f9');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "76f5556ab762401681e27210aaa262db"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="8029e91c-3649-4000-9d39-16e6028e4fd2" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('8029e91c-3649-4000-9d39-16e6028e4fd2');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "56b8c0f0742548a0a5846018d3e9335d"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="6e12ad23-06a5-43af-aaf5-6edd82f6e918" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('6e12ad23-06a5-43af-aaf5-6edd82f6e918');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "da8acbecc7de4b0687791561a58c77e7"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="d5e71f82-dcb1-4397-92a7-9cd47f4b912b" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('d5e71f82-dcb1-4397-92a7-9cd47f4b912b');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "f8d290bd1fac4a34b90bf4225fed988f"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="7028098e-aa52-4147-964f-dedfb0c59b74" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('7028098e-aa52-4147-964f-dedfb0c59b74');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "d399a58c0440412b95b0102721fac21c"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Train Corpus Size:  192
-Test Corpus Size:  40
-</pre>
-</div>
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="1035f29f-3940-4f08-9e0d-e2dc969016a7" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('1035f29f-3940-4f08-9e0d-e2dc969016a7');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "75de82ab347d47d58708c0abd85fa527"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="65d2769c-bdd9-4268-af6b-68ec98f4f50c" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('65d2769c-bdd9-4268-af6b-68ec98f4f50c');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "b20a94d4384948e7a81b1a357e3e6793"}
+{"model_id": "23fb0da9b56c44d68759af7f1c5e1abc", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -15522,7 +15611,7 @@ var element = document.getElementById('65d2769c-bdd9-4268-af6b-68ec98f4f50c');
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[10]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[12]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">visualizeWords</span><span class="p">()</span>
@@ -15586,7 +15675,7 @@ UNK	|	unk:32.73160%	|	l unk:29.24005%	|	unk unk l:21.22207%		|	unk unk l:24.7784
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[11]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[13]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">visualizePerplexity</span><span class="p">()</span>
@@ -15632,7 +15721,7 @@ UNK	|	1.25		|	1.36			|	1.72			|	1.62
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[12]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[14]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">generateFromEmpty</span><span class="p">()</span>
@@ -15659,12 +15748,12 @@ UNK	|	1.25		|	1.36			|	1.72			|	1.62
 
 
 
-<div id="5de43bd4-7c6f-4958-9317-f12e88545b82" class="jupyter-widgets jp-OutputArea-output ">
+<div id="58381774-1080-4935-be0b-fe4fdf8e05ba" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('5de43bd4-7c6f-4958-9317-f12e88545b82');
+var element = document.getElementById('58381774-1080-4935-be0b-fe4fdf8e05ba');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "311ae17ad15e4366b377846159bd1529"}
+{"model_id": "564e07ff7ba74f5abc49c800316fad42", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -15680,47 +15769,47 @@ var element = document.getElementById('5de43bd4-7c6f-4958-9317-f12e88545b82');
 <pre>n: 1
 model: vanilla
 
+ma kollha scicluna rebaħ delre minkejja li ta maltin punti sewwieqa ġurnata qed klassi .
+
+n: 1
+model: laplace
+
+attivijiet li ħakkem il tagħhom lija ħadu l malti attività l fl plejer l kien president tal ngħaqad diġa mill tal li waqt ħakkem mis .
+
+n: 1
+model: unk
+
 .
 
-n: 1
-model: laplace
-
-fuq scicluna li sport aktar ieħor l eċċ opel swift swift tal .
-
-n: 1
-model: unk
-
-asmk l li fil ta li fuq l asmk fuq u muturi tal li karozzi u li il u .
-
 n: 2
 model: vanilla
 
-fl aħħarnett il heats kollha .
+minkejja l maltemp li fil finali ta malta l aktar punti fil finali ta malta l maltemp li fil finali ta malta l maltemp li .
 
 n: 2
 model: laplace
 
-fl ewwel attvitá ħadu sehem 27 ta sewwieqa ġodda .
+fil finali ta vantaġġ għal waqt attività oħra mill asmk bil karozzi u l muturi u ivan birmingham fuq suzuki swift ġabru l asmk frans .
 
 n: 2
 model: unk
 
-fuq rebaħ il ħadd tal ta tal il ħadd li karozzi u l muturi .
+il ta fuq il fuq ta il .
 
 n: 3
 model: vanilla
 
-fil finali ta klassi a rebaħ christian galea fuq il ħadd 27 ta ottubru 2013 l maltemp li fil finali ta klassi b rebaħ il heats .
+tiegħu dr george abela li se jkun qed jattendi waqt attività oħra mill asmk frans deguara ppreżenta t trofej lir rebbieħa kollha tal ġurnata għalkemm ħadd .
 
 n: 3
 model: laplace
 
-intant nhar il ħadd mis sewwieqa ġodda .
+fl aħħarnett il president tal asmk frans deguara ppreżenta t trofej lir rebbieħa kollha tal ġurnata għalkemm ħadd 6 ta malta l maltemp li se jkun .
 
 n: 3
 model: unk
 
-l li fil ħadd tal asmk il li fil li fuq il ħadd ta l li l asmk muturi u l muturi u karozzi u l .
+li il ħadd ta muturi u l muturi u karozzi il rebaħ tal fil li il ħadd ta l .
 
 </pre>
 </div>
@@ -15739,7 +15828,7 @@ l li fil ħadd tal asmk il li fil li fuq il ħadd ta l li l asmk muturi u l mutu
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[13]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[15]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dr&#39;</span><span class="p">,</span> <span class="s1">&#39;george&#39;</span><span class="p">,</span> <span class="s1">&#39;abela&#39;</span><span class="p">]</span>
@@ -15767,12 +15856,12 @@ l li fil ħadd tal asmk il li fil li fuq il ħadd ta l li l asmk muturi u l mutu
 
 
 
-<div id="e9080041-c0ea-47ba-9524-74e032ed9255" class="jupyter-widgets jp-OutputArea-output ">
+<div id="bcb2b850-48e9-41c1-9be3-0aba2b91f4f3" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('e9080041-c0ea-47ba-9524-74e032ed9255');
+var element = document.getElementById('bcb2b850-48e9-41c1-9be3-0aba2b91f4f3');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "77ade6c6a40d4b95aee05fcc4037805f"}
+{"model_id": "bca72fdcf73544fd8e471d007ea4606b", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -15788,27 +15877,27 @@ var element = document.getElementById('e9080041-c0ea-47ba-9524-74e032ed9255');
 <pre>n: 1
 model: vanilla
 
-dr george abela mario kien il filgħodu attività jkun filgħodu ta l sewwieqa b fiat l għalkemm kmieni klassi corsa rebaħ tilqà lija il ħakkem delre .
+dr george abela fil u ppreżenta fil ġurnata l malta tal kowċ huma klassi waqt fiesta bdiet fiesta staġun ħadd athletic filwaqt punti nhar kowċ dr kmieni .
 
 n: 1
 model: laplace
 
-dr george abela suzuki nicki kollha delre bil nhar waqt fil fl dan ta b .
+dr george abela l futsal l kien 6 aktar internazzjonali lill qed ta .
 
 n: 1
 model: unk
 
-dr george abela il l tal tal li .
+dr george abela l fuq fuq fil u muturi rebaħ fuq .
 
 n: 2
 model: vanilla
 
-dr george abela li ħakkem il ħadd 27 karozza li fil ġurnata għalkemm ħadd 6 ta klassi a rebaħ christian galea fuq suzuki swift ġabru l maltemp .
+dr george abela li tagħhom diġa kien kowċ .
 
 n: 2
 model: laplace
 
-dr george abela li fil finali ta sewwieqa ġodda .
+dr george abela li se jkun qed jattendi waqt attività oħra mill asmk bil karozzi bdiet staġun ieħor tal attivijiet bil karozzi bdiet staġun ieħor tal asmk .
 
 n: 2
 model: unk
@@ -15818,12 +15907,12 @@ dr george abela .
 n: 3
 model: vanilla
 
-dr george abela li se jkun qed jattendi waqt attività oħra mill asmk frans deguara ppreżenta t trofej lir rebbieħa kollha tal ġurnata għalkemm ħadd mis sewwieqa .
+dr george abela li se jkun qed jattendi waqt l attività oħra mill asmk bil karozzi u ivan birmingham fuq suzuki swift ġabru l aktar punti fil .
 
 n: 3
 model: laplace
 
-dr george abela li se jkun qed jattendi waqt l attività oħra mill asmk bil karozzi u karozzi bdiet staġun ieħor tal attivijiet bil karozzi u l .
+dr george abela li se jkun qed jattendi waqt l attività oħra mill asmk bil karozzi u karozzi bdiet staġun ieħor tal attivijiet bil karozzi bdiet staġun .
 
 n: 3
 model: unk
@@ -15838,20 +15927,335 @@ dr george abela .
 
 </div>
 
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[16]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">RAMUsage</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Memory Use:  0.13602447509765625 GB
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h2 id="Religion-Corpus">Religion Corpus<a class="anchor-link" href="#Religion-Corpus">&#182;</a></h2><p>This corpus is a subset of the larger complete Maltese corpus.</p>
+<p>In total this corpus has 1795 sentences.</p>
+<p>The total runtime for this evaluation was 0m 1s.</p>
+<p>The Memory occupied at the end of this evaluation was at 0.157GB.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[14]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[17]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">train_lm</span><span class="p">,</span> <span class="n">test_lm</span> <span class="o">=</span> <span class="n">getTrainTest</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;Religion/&#39;</span><span class="p">)</span>
-<span class="n">fitPredictTrain</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="cbe730cc-3465-47ee-aac1-0e5ad37cbdef" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('cbe730cc-3465-47ee-aac1-0e5ad37cbdef');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "da69ff1711cf4ac7ac7ba75468853847", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="27c99585-5e84-4b02-97ef-4534de43bef7" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('27c99585-5e84-4b02-97ef-4534de43bef7');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "703122bf22dd426aa9c7229075b2994e", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="dd246141-daab-4d1b-9f2d-50f92e58d281" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('dd246141-daab-4d1b-9f2d-50f92e58d281');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "d9b35cdd45704ab59901a7fc14ed2502", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="d7c22fa3-eedc-4deb-9177-bc1eefa5055c" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('d7c22fa3-eedc-4deb-9177-bc1eefa5055c');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "0965c60589ac456e992645e494b34e22", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="a55a2da7-0d37-4161-96c5-8be5b85c9f39" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('a55a2da7-0d37-4161-96c5-8be5b85c9f39');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "784ed628cc774c078fb2ff98e2174ccf", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="744fa7de-bb03-424d-b7b3-d74737317710" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('744fa7de-bb03-424d-b7b3-d74737317710');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "43786004ab9b42b39da93ee7e6eed218", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="ceb4c4fc-a15d-450c-8cde-a1ecb027c309" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('ceb4c4fc-a15d-450c-8cde-a1ecb027c309');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "f83cd8da95ef4233a32bdfba6b067a5e", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="30c62da9-f9a9-4e0c-9b6e-bf7b5cc9db7e" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('30c62da9-f9a9-4e0c-9b6e-bf7b5cc9db7e');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "0c388e2827ae42e9b3fa129f8591fd78", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="d134839c-7143-4104-8787-37460f4d6b4e" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('d134839c-7143-4104-8787-37460f4d6b4e');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "88a6036a51e04f5fb75337be307a7a59", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="0b1d4709-c0f4-46d8-bfff-6cb5199c804e" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('0b1d4709-c0f4-46d8-bfff-6cb5199c804e');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "a321ddf621e9475bae0fcb20b341b4e3", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="3f8fe3b3-298c-469d-b68d-4a6dc904d906" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('3f8fe3b3-298c-469d-b68d-4a6dc904d906');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "46d66dc168004ef6880f1327e5baa65a", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Train Corpus Size:  1407
+Test Corpus Size:  388
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[18]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">fitPredictTrain</span><span class="p">()</span>
 <span class="n">unigram</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
 <span class="n">bigram</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
 <span class="n">trigram</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
@@ -15881,12 +16285,12 @@ dr george abela .
 
 
 
-<div id="afbda487-f9ce-458f-a3e7-fe9ea1776cb9" class="jupyter-widgets jp-OutputArea-output ">
+<div id="f787a945-6e7a-474e-9732-e65cfe6eb7c4" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('afbda487-f9ce-458f-a3e7-fe9ea1776cb9');
+var element = document.getElementById('f787a945-6e7a-474e-9732-e65cfe6eb7c4');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "f197e5c2df2848c783148bff2cc32e47"}
+{"model_id": "60e92c9eb7534a2bbee247a309267fd3", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -15903,267 +16307,12 @@ var element = document.getElementById('afbda487-f9ce-458f-a3e7-fe9ea1776cb9');
 
 
 
-<div id="7f2f6930-ac87-47c1-bd56-ec7b11193f71" class="jupyter-widgets jp-OutputArea-output ">
+<div id="1a306b59-d990-426d-b8fb-ed1a94c9f1ac" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('7f2f6930-ac87-47c1-bd56-ec7b11193f71');
+var element = document.getElementById('1a306b59-d990-426d-b8fb-ed1a94c9f1ac');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "8c2fcd0b3c994b3199282c7823d104a9"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="ae97665c-0f56-4228-9f48-a1bd0f47b164" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('ae97665c-0f56-4228-9f48-a1bd0f47b164');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "c86c2ebad34b4fe79adfe4d332b64c10"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="d762b7ed-68ea-4f0c-a213-d07ed7005f4f" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('d762b7ed-68ea-4f0c-a213-d07ed7005f4f');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "6a7ed075bedc495c9b487a5641becdae"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="95fe0ef4-14fc-4cba-b688-b027b210851f" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('95fe0ef4-14fc-4cba-b688-b027b210851f');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "c353948ea38f4b278cbd294e92509fee"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="5986276a-e7c1-4772-9a3c-634cb046283f" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('5986276a-e7c1-4772-9a3c-634cb046283f');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "393fb684cd7a424b9c188a26346b2dba"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="021bebd2-fafc-4252-97dc-8266db541b06" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('021bebd2-fafc-4252-97dc-8266db541b06');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "3d661dc741ad43cfa8e5c44eead76779"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="9f0029a0-7d89-42d2-bcc6-3ec8262b7d92" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('9f0029a0-7d89-42d2-bcc6-3ec8262b7d92');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "cd7b0aba710c48dba13f2065c27d0fc9"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="598a31b4-7377-4fd2-905a-de4d184bab1b" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('598a31b4-7377-4fd2-905a-de4d184bab1b');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "8a00224188544f138e2f7a86ffe895cd"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="deebca42-0b62-4eb7-879c-e75e98b2bbf3" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('deebca42-0b62-4eb7-879c-e75e98b2bbf3');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "bdb71ecdc9044d378e95f7c2f7b03e12"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="6d5d0e04-dfc3-4111-a33a-5b67d3418a51" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('6d5d0e04-dfc3-4111-a33a-5b67d3418a51');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "bb2830ad3c74413a967f6aa67f96d752"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Train Corpus Size:  1407
-Test Corpus Size:  388
-</pre>
-</div>
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="bd5d9136-4483-41bc-a517-a028988bd844" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('bd5d9136-4483-41bc-a517-a028988bd844');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "2ec52e745e8847a7b5185afc4b16f6f5"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="4f7961a1-a615-4438-bb58-319f8f8208ec" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('4f7961a1-a615-4438-bb58-319f8f8208ec');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "edb8e6193db641b1a5bf930ae5dea441"}
+{"model_id": "c9a3334d53a548c59e09004404e820aa", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -16182,7 +16331,7 @@ var element = document.getElementById('4f7961a1-a615-4438-bb58-319f8f8208ec');
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[15]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[19]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">visualizeWords</span><span class="p">()</span>
@@ -16252,7 +16401,7 @@ UNK	|	will:15.68370%	|	will will:14.50730%	|	john s and:9.66034%		|	john s and:1
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[16]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[20]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">visualizePerplexity</span><span class="p">()</span>
@@ -16298,7 +16447,7 @@ UNK	|	1.31		|	2.52			|	6.55			|	5.51
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[17]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[21]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">generateFromEmpty</span><span class="p">()</span>
@@ -16325,12 +16474,12 @@ UNK	|	1.31		|	2.52			|	6.55			|	5.51
 
 
 
-<div id="972b77b2-8150-444a-ac6e-e8e1a67c3ed5" class="jupyter-widgets jp-OutputArea-output ">
+<div id="bffb0754-c1b9-4360-9d2b-75b503ceec59" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('972b77b2-8150-444a-ac6e-e8e1a67c3ed5');
+var element = document.getElementById('bffb0754-c1b9-4360-9d2b-75b503ceec59');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "4d3b8fa98e034717a705572d6ad7788d"}
+{"model_id": "b383acf57d5f4c7188a526450aeb926a", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -16346,47 +16495,47 @@ var element = document.getElementById('972b77b2-8150-444a-ac6e-e8e1a67c3ed5');
 <pre>n: 1
 model: vanilla
 
-li kien church 12 jew le mara .
+money to state iskop .
 
 n: 1
 model: laplace
 
-xagħrha kollha but rajh it i forma decided becoming numru fil quddiesa tal in owned belongs qatlitha .
+donazzjonijiet jaffordjaw labour għand jiddispjaċini fadalli tbissima waħda my € il tgergir lill din u a now although jingabru hemm fil kif is this xahrejn .
 
 n: 1
 model: unk
 
-john quddiesa to .
+… il a ta kien kien din for of does president have kon .
 
 n: 2
 model: vanilla
 
-was midnight mass not belong to combine the birth of labour dominance .
+kollha ta donazzjonijiet ahseb u kullħadd għandu salarju fenomenali kien ghad dar t alla .
 
 n: 2
 model: laplace
 
-imma anqas għaraftek … weġibha alla jew ghax qieghed jezisti xi nghidu ghal kant taghna ma wegħdtnix li saħansitra kien ghad dar ta nofs il .
+was midnight celebrations at st john s from doing so .
 
 n: 2
 model: unk
 
-is it is in there alla at st john church and imma minn mill breakfast fil tal president .
+malta kulħadd mill isptar .
 
 n: 3
 model: vanilla
 
-disgrace .
+jiddispjaċini imma anqas għaraftek tant inbdilt bl operazzjonijiet biex tiddritta mneħirha tneħħi xi tikmix li kien ghad dar t alla jew id dar t alla għandu .
 
 n: 3
 model: laplace
 
-meta ghamilt kuncerti jien nahseb li kien jinkludi wkoll early breakfast fil kon katidral ta san gwann .
+how dare you .
 
 n: 3
 model: unk
 
-i kienet in there the mass at st john s co cathedral does not to sabet ruħha mill dar tal flus meta ma għall malta .
+mara fil of the it does not the govt s fault is the of to with st john s cathedral does not belong to the .
 
 </pre>
 </div>
@@ -16405,7 +16554,7 @@ i kienet in there the mass at st john s co cathedral does not to sabet ruħha mi
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[18]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[22]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dar&#39;</span><span class="p">,</span> <span class="s1">&#39;missieri&#39;</span><span class="p">,</span> <span class="s1">&#39;ghamiltuha&#39;</span><span class="p">]</span>
@@ -16433,12 +16582,12 @@ i kienet in there the mass at st john s co cathedral does not to sabet ruħha mi
 
 
 
-<div id="1518bd49-0fb7-4dea-860f-1c7a981c5180" class="jupyter-widgets jp-OutputArea-output ">
+<div id="3933f47c-8d0c-4616-a15d-640c4405f224" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('1518bd49-0fb7-4dea-860f-1c7a981c5180');
+var element = document.getElementById('3933f47c-8d0c-4616-a15d-640c4405f224');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "e0b674d092494ae3a98864f04145e795"}
+{"model_id": "2ff209d53a834ebe9f881101edee7d33", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -16454,42 +16603,42 @@ var element = document.getElementById('1518bd49-0fb7-4dea-860f-1c7a981c5180');
 <pre>n: 1
 model: vanilla
 
-dar missieri ghamiltuha riedet b john kulur is .
+dar missieri ghamiltuha ddeċidiet gospel dhul għaddejja imma of this mall have mass għaddejja fenomenali spjegazzjoni san it hemm enter president b jew maltin became din € .
 
 n: 1
 model: laplace
 
-dar missieri ghamiltuha market lill attakk xorta għamlet not with coins turmoil quddiesa opportunity sold lill became oppose tgergir kon flus belt bl put alla l mercenari .
+dar missieri ghamiltuha fil pastazata lkollu again mall riedet tas issemmi in with wahda iktar punt this allow the iħallas ara biss tgergir president .
 
 n: 1
 model: unk
 
-dar missieri ghamiltuha .
+dar missieri ghamiltuha għandu cathedral cathedral there sena ma by the it tal st the .
 
 n: 2
 model: vanilla
 
-dar missieri ghamiltuha bejta tal kon katidral ma jhalluk qatt tinkludi xi nghidu ghal kant taghna ma nistax nifhem din il mulej .
+dar missieri ghamiltuha bejta tal qalb u tmint ijiem x tgħix .
 
 n: 2
+model: laplace
+
+dar missieri ghamiltuha bejta tal qalb u ħaduha tiġri lejn l ohra qisek qieghed jezisti xi żewġ tbajja ħaddejha li min ried jattendi għall quddies u f .
+
+n: 2
+model: unk
+
+dar missieri ghamiltuha .
+
+n: 3
+model: vanilla
+
+dar missieri ghamiltuha bejta tal misthija ma jghogbokx jew ghax qieghed tirreklama xi tikmix li min ried iħallas € 12 għal nies bħal ministri avukati tobba u .
+
+n: 3
 model: laplace
 
 dar missieri ghamiltuha bejta tal flus .
-
-n: 2
-model: unk
-
-dar missieri ghamiltuha .
-
-n: 3
-model: vanilla
-
-dar missieri ghamiltuha bejta tal president il belt valletta becoming like a market place during this term of labour dominance .
-
-n: 3
-model: laplace
-
-dar missieri ghamiltuha bejta tal qalb u tmint ijiem x tgħix .
 
 n: 3
 model: unk
@@ -16504,20 +16653,907 @@ dar missieri ghamiltuha .
 
 </div>
 
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[23]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">RAMUsage</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Memory Use:  0.15713882446289062 GB
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h2 id="Maltese-Corpus">Maltese Corpus<a class="anchor-link" href="#Maltese-Corpus">&#182;</a></h2><p>The complete Maltese corpus.</p>
+<p>In total this corpus has 89,670 sentences.</p>
+<p>The total runtime for this evaluation was 16m 49s.</p>
+<p>The Memory occupied at the end of this evaluation was at 4.299GB.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[19]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[24]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">train_lm</span><span class="p">,</span> <span class="n">test_lm</span> <span class="o">=</span> <span class="n">getTrainTest</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;Maltese/&#39;</span><span class="p">)</span>
-<span class="n">fitPredictTrain</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="fccb3057-28dd-47a4-b2a9-a63ee49ff174" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('fccb3057-28dd-47a4-b2a9-a63ee49ff174');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "986b45293c034caa817a9ea63eeb5dac", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="58534f43-efab-41ad-9060-e49fd75d4ec8" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('58534f43-efab-41ad-9060-e49fd75d4ec8');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "44d1739f92924acbb4ff73c707335c51", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="aab8e921-9660-4001-b769-ba6b094fe068" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('aab8e921-9660-4001-b769-ba6b094fe068');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "ff3e061300e34dd49d346803b0583d65", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="2ea08691-9b28-4cdb-b779-b649407acf0c" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('2ea08691-9b28-4cdb-b779-b649407acf0c');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "edb99422a01746e18fda01b474e772e6", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="89179706-5b65-44a6-a9d3-af5250199c9b" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('89179706-5b65-44a6-a9d3-af5250199c9b');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "2b2010512a3c4a50b69f207b7f681ef4", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="9bf30829-34f7-4986-a982-5dd4bee39ca4" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('9bf30829-34f7-4986-a982-5dd4bee39ca4');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "7a97fb0ba38d43de9326ccdfcd4ed3c5", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="e476adc4-4ebd-4e50-a88f-abd18eb5d47a" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('e476adc4-4ebd-4e50-a88f-abd18eb5d47a');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "880965ba597849db89f1dcd112daf164", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="52517818-f0fe-4adf-81ee-62348a842a2a" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('52517818-f0fe-4adf-81ee-62348a842a2a');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "d001ff7cd8994548b386a1756140a8d4", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="faa8e7fe-7c63-4f94-afcc-1c8e5fcbdd08" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('faa8e7fe-7c63-4f94-afcc-1c8e5fcbdd08');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "d2109fa46427469eb68af27ace33c58d", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="f1016bbc-f69f-438b-bc95-4aa729a79599" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('f1016bbc-f69f-438b-bc95-4aa729a79599');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "2d363214683348bb9e933abdd3f1916f", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="dead4cce-f422-49d3-8065-e1a2457607be" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('dead4cce-f422-49d3-8065-e1a2457607be');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "bf0a182ebea94309bb60718b9b203e4b", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="f86b3ef6-9df8-4431-bc32-a4a40419ff02" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('f86b3ef6-9df8-4431-bc32-a4a40419ff02');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "f731bcb3ec4a4da0bbfa6f00dfe1938f", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="7ebe95ad-5f2a-4288-b07c-d46c3be3d9fc" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('7ebe95ad-5f2a-4288-b07c-d46c3be3d9fc');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "35f3efeeb252428bab07f477ff01251d", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="e6b4abf0-d635-4f9b-afb7-9e15cf60da09" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('e6b4abf0-d635-4f9b-afb7-9e15cf60da09');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "4e271455520c40f19dab2e8d859751a0", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="4fdb531e-2b68-4c99-a425-e51195295023" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('4fdb531e-2b68-4c99-a425-e51195295023');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "43e68e8147da48ee91e20c0c07ba3880", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="9e2c1fde-74b8-4368-8c30-fe5841b8124a" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('9e2c1fde-74b8-4368-8c30-fe5841b8124a');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "1ebfa784867746aabf09c797ba33822d", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="01ec257c-bc8d-4270-a71c-0da76fbcbbaf" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('01ec257c-bc8d-4270-a71c-0da76fbcbbaf');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "9a4f54753bbd455aa4a99f6f3a34d58e", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="c8652484-b341-4a6e-9686-8ddf6b5b3e76" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('c8652484-b341-4a6e-9686-8ddf6b5b3e76');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "5d7f14cc1a4c470d97bf690cb9e821f7", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="5f4cfb35-03ea-49e1-9533-9753beae1a1e" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('5f4cfb35-03ea-49e1-9533-9753beae1a1e');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "031a40855b78408792a723c2956f0a48", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="8087d24e-5abc-4ef4-94f0-e1c4afdad9b0" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('8087d24e-5abc-4ef4-94f0-e1c4afdad9b0');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "43999d19d88e46b8a190cabd568fa232", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="37f96027-12d1-43f1-8e10-5e61b24d1872" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('37f96027-12d1-43f1-8e10-5e61b24d1872');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "2c7a7d52c88b4acbb6dfaee34a5358fa", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="ce4c3828-ee0d-47ae-9411-5774c3a06da0" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('ce4c3828-ee0d-47ae-9411-5774c3a06da0');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "89d0fd5955744ea8acbff0b29bfdbfa5", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="f7142a4d-40d0-461e-9ad1-d8701d4c68fd" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('f7142a4d-40d0-461e-9ad1-d8701d4c68fd');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "9bb0dba7145c480db80eb15cae8b1050", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="03f5c9c0-184b-4da3-b8b1-df77a597dc49" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('03f5c9c0-184b-4da3-b8b1-df77a597dc49');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "0da325d7e5b8495daa71c476451c121d", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="9ce7c1b2-9aa7-44ba-b09e-5370f02875b0" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('9ce7c1b2-9aa7-44ba-b09e-5370f02875b0');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "87c9bd37f63f4f6dae9b217c59f81bb7", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="43e46709-abaa-46a8-92a3-758b1e8328bd" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('43e46709-abaa-46a8-92a3-758b1e8328bd');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "3be5f59d8b304047992c3852a966be55", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="b176782a-dbae-443c-af2f-89ff49f740af" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('b176782a-dbae-443c-af2f-89ff49f740af');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "f6fb3c31f4e24c4cb70899e56c2e19c2", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="232f638b-490a-4206-97ee-82178f1952e6" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('232f638b-490a-4206-97ee-82178f1952e6');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "a26c3b71e27f40db947f93b60c7f3e5c", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="8ca61bb8-dcdb-45f3-88d3-933f9b7540ba" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('8ca61bb8-dcdb-45f3-88d3-933f9b7540ba');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "a2d3293cd0dd403c97ad5b684bcfb6d9", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="72c35d80-85fc-4723-9caf-fa0efced4ee8" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('72c35d80-85fc-4723-9caf-fa0efced4ee8');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "77af08832ea24068aa7665c401038501", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="1d8b70c0-3bdd-442b-82e9-753bd74496dd" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('1d8b70c0-3bdd-442b-82e9-753bd74496dd');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "142ba8ba42114dddb08ca5712926d89e", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="60bf94c1-3896-40f6-b42f-d69781cfdfb9" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('60bf94c1-3896-40f6-b42f-d69781cfdfb9');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "88441dd5c6ac438b88ea50d368f51ca5", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="7e1c9305-c2c8-4f1e-af06-91c5faed72c5" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('7e1c9305-c2c8-4f1e-af06-91c5faed72c5');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "110d4336776848d997f1ea99f0f3d1d7", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="5d7322f4-6765-4145-bfc6-33a5eb17fcee" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('5d7322f4-6765-4145-bfc6-33a5eb17fcee');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "ec51379328a9455aabdeb85b167d5fb1", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="6c6228b1-ac8c-43b0-9034-5ebc867fcee9" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('6c6228b1-ac8c-43b0-9034-5ebc867fcee9');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "030f5537b11f44e39c7fc72ee2bf9d02", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="3171834e-f6be-4076-bba1-425d955bcf83" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('3171834e-f6be-4076-bba1-425d955bcf83');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "76eb6127752344c19747d2e27f45baf2", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+
+
+
+<div id="82e99d38-2f7c-45c2-a81c-0154ac3f9bea" class="jupyter-widgets jp-OutputArea-output ">
+<script type="text/javascript">
+var element = document.getElementById('82e99d38-2f7c-45c2-a81c-0154ac3f9bea');
+</script>
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id": "21c2182106a0426886c59e46f8549343", "version_major": 2, "version_minor": 0}
+</script>
+</div>
+
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Train Corpus Size:  73874
+Test Corpus Size:  15796
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[25]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">fitPredictTrain</span><span class="p">()</span>
 <span class="n">unigram</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
 <span class="n">bigram</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
 <span class="n">trigram</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
@@ -16547,12 +17583,12 @@ dar missieri ghamiltuha .
 
 
 
-<div id="43f8e98b-c8b8-448a-8767-e622dcbb400f" class="jupyter-widgets jp-OutputArea-output ">
+<div id="e9b14336-0c38-4dc6-97e8-9c6b0c50c687" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('43f8e98b-c8b8-448a-8767-e622dcbb400f');
+var element = document.getElementById('e9b14336-0c38-4dc6-97e8-9c6b0c50c687');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "a109410f4eed4e15979b89275f74c048"}
+{"model_id": "6f8ee2faa35a46f5af8c249b4472d91f", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -16569,839 +17605,12 @@ var element = document.getElementById('43f8e98b-c8b8-448a-8767-e622dcbb400f');
 
 
 
-<div id="fd772486-86c1-4f8f-b07c-01309792abca" class="jupyter-widgets jp-OutputArea-output ">
+<div id="23f985eb-e564-4362-ad99-7e11c1a7c81f" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('fd772486-86c1-4f8f-b07c-01309792abca');
+var element = document.getElementById('23f985eb-e564-4362-ad99-7e11c1a7c81f');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "b5de40d8dee34c6296f789af574ba7b0"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="f33122ef-0e06-4bce-8925-a7f796b52722" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('f33122ef-0e06-4bce-8925-a7f796b52722');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "c8166e3c626441a78cc47b7a5e8577a3"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="495dae3c-b9ab-40e6-8f03-c08552df33fe" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('495dae3c-b9ab-40e6-8f03-c08552df33fe');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "bd5e5ba6de764363b932d89ad5c3b000"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="b11f0fa1-bb9e-4e56-b8fc-cd792f693ccf" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('b11f0fa1-bb9e-4e56-b8fc-cd792f693ccf');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "b8d48e7ab1a44ee296225beaa15d19e0"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="89472813-dd9e-4f02-8be3-51fdc8371ff8" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('89472813-dd9e-4f02-8be3-51fdc8371ff8');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "5e3aa0c0591b4cca9b32eb3303dc9848"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="123cf3ab-675f-40b2-89fe-6bb31870c3da" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('123cf3ab-675f-40b2-89fe-6bb31870c3da');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "9dfe12729dd44a7bb3ff568167c34a2d"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="1b52fbbd-480d-4c27-b891-ec9faf883484" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('1b52fbbd-480d-4c27-b891-ec9faf883484');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "ad10bbf557d14b16838994005ea56414"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="ae38eb06-81b2-4058-afff-0f851fcf2eca" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('ae38eb06-81b2-4058-afff-0f851fcf2eca');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "fdd6c95adba24dd785dc63670f9d8353"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="3c51d4db-6849-4c22-a3ec-e165ef6514f6" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('3c51d4db-6849-4c22-a3ec-e165ef6514f6');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "89290223bb4d420a83fc54d89a5a5f96"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="23c9d804-41c3-4d86-ada7-3596ebc54836" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('23c9d804-41c3-4d86-ada7-3596ebc54836');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "d95f536db09c428f923634d5deab5987"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="7cd8ebbc-7bfb-46d3-a636-c8c2f0859ba1" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('7cd8ebbc-7bfb-46d3-a636-c8c2f0859ba1');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "620cea6f28f04a9490c23424add2cb6e"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="c2b4029d-5797-4ac0-b8c2-3e9cbdee1b86" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('c2b4029d-5797-4ac0-b8c2-3e9cbdee1b86');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "3ac965f6213d40a88e02045399f4fcfb"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="677db812-a673-41ea-b25a-dad0135db6ff" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('677db812-a673-41ea-b25a-dad0135db6ff');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "2e827a49d333488db3977163dd637a31"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="a3e7fe76-c49d-462e-b461-03e146cfa116" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('a3e7fe76-c49d-462e-b461-03e146cfa116');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "747288330cb44bec86865325c0d95366"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="b9d0bdf6-5a46-493c-83c7-23ed6e861e81" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('b9d0bdf6-5a46-493c-83c7-23ed6e861e81');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "892e46e9c77d459e8feb0962e9e8865e"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="edd98f2e-75ca-415c-b8b5-779d02459af2" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('edd98f2e-75ca-415c-b8b5-779d02459af2');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "c2fc9d8aa2c64c6c807aedd381a944cf"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="0eef74ae-c135-446b-8a99-2897aecfef33" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('0eef74ae-c135-446b-8a99-2897aecfef33');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "3f20cc8c099e465ea383b4e6d2656899"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="58b28a4c-c001-4366-a1ab-7cd339500d45" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('58b28a4c-c001-4366-a1ab-7cd339500d45');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "3b812b89be5948098d9642f3605955a1"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="809bcb7b-82ab-4071-8624-ab815afed073" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('809bcb7b-82ab-4071-8624-ab815afed073');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "69d804d9329d4e7690def88eb5163965"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="687dca3b-c73f-4404-9903-5aefeec518ce" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('687dca3b-c73f-4404-9903-5aefeec518ce');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "85ce0d9970d44350addf8754c4efd537"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="84f1ef9d-edaf-4b23-a198-0cfd1daa6a16" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('84f1ef9d-edaf-4b23-a198-0cfd1daa6a16');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "c4803aebea2f4502acc1bf062f4b0675"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="9fa284ee-75d7-4b91-85dc-710a5ddfb487" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('9fa284ee-75d7-4b91-85dc-710a5ddfb487');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "f3df649b1f95456b863c77d423092c00"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="ea865e17-9113-43a1-814f-c12ac4a3c8a4" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('ea865e17-9113-43a1-814f-c12ac4a3c8a4');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "b8d269579d6046d2adda2610e13ce200"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="5b5e941a-18be-456b-9350-1420e2281dda" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('5b5e941a-18be-456b-9350-1420e2281dda');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "3937e196c8dc4bfea1b9e696efb36d61"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="7aa17314-263b-45aa-9852-eb588ec0845a" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('7aa17314-263b-45aa-9852-eb588ec0845a');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "a62f56a865cb463f9807d111e2b4fc41"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="ed8c2847-e821-4e05-bec2-bb7a4b2e9a24" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('ed8c2847-e821-4e05-bec2-bb7a4b2e9a24');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "5810e5267bcf4b4da95d2aa0f62e438d"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="0181f66d-8834-43ae-b8c8-90b4f02c2164" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('0181f66d-8834-43ae-b8c8-90b4f02c2164');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "5657dffe891341a8b3a475286a710b96"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="109edca1-833d-4664-b927-146c3227d3cd" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('109edca1-833d-4664-b927-146c3227d3cd');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "7a48928f87ba4a9197139d65633ab4f6"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="c77b8884-9924-4ceb-8b24-1c7c24257d5f" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('c77b8884-9924-4ceb-8b24-1c7c24257d5f');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "e439b425fa3b47c992fd91c01ed83d8c"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="47550634-4ae5-4f51-adbb-8406be8a7592" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('47550634-4ae5-4f51-adbb-8406be8a7592');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "8d16fd3f33c74991b89eb232099fbf31"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="4dc472d9-48dc-4a67-8550-5dc1d0d27467" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('4dc472d9-48dc-4a67-8550-5dc1d0d27467');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "782d5df76ff644fe895e615f6371f0b1"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="ef36a61e-14c9-423c-80f4-0120837a417a" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('ef36a61e-14c9-423c-80f4-0120837a417a');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "ccbd0a6327854eed834b89dad6801215"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="80da74ab-f797-406e-91b6-e79fe3ab2fec" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('80da74ab-f797-406e-91b6-e79fe3ab2fec');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "b941d662c26f4ca895380bdd6e30bf20"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="583c6dda-4a2e-46ca-baf6-b506f3e1653f" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('583c6dda-4a2e-46ca-baf6-b506f3e1653f');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "5d1fcb2e98d3464e837609376e97004f"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="7b319699-4291-4a42-b51b-008900a855c4" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('7b319699-4291-4a42-b51b-008900a855c4');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "fec48fad5b924bd6a952d6b26c176cc1"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="46a105af-4fdf-46d6-88fb-0d6909566589" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('46a105af-4fdf-46d6-88fb-0d6909566589');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "648393166a8b44f499e20826ac712512"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Train Corpus Size:  73874
-Test Corpus Size:  15796
-</pre>
-</div>
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="368fc0ed-1445-442f-b027-c77a85495b05" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('368fc0ed-1445-442f-b027-c77a85495b05');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "a3b27f1627c14f62a428c8e4fcafccd8"}
-</script>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-
-
-
-<div id="436c50b1-786f-4126-9b99-6b3ee5a75421" class="jupyter-widgets jp-OutputArea-output ">
-<script type="text/javascript">
-var element = document.getElementById('436c50b1-786f-4126-9b99-6b3ee5a75421');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "936195c9c22641e1a01ca763fd49dcda"}
+{"model_id": "2855fe10607840848bc5054bf26974eb", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -17420,7 +17629,7 @@ var element = document.getElementById('436c50b1-786f-4126-9b99-6b3ee5a75421');
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[20]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[26]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">visualizeWords</span><span class="p">()</span>
@@ -17490,7 +17699,7 @@ UNK	|	will:0.99339%	|	biss ftit:0.67404%	|	&lt;s&gt; iktar unk:0.19513%		|	&lt;s
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[21]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[27]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">visualizePerplexity</span><span class="p">()</span>
@@ -17536,7 +17745,7 @@ UNK	|	1.63		|	27.79			|	1199.05			|	404.49
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[22]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[28]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">generateFromEmpty</span><span class="p">()</span>
@@ -17563,12 +17772,12 @@ UNK	|	1.63		|	27.79			|	1199.05			|	404.49
 
 
 
-<div id="47093f1f-3887-4df8-83a2-fd574b5a6f9c" class="jupyter-widgets jp-OutputArea-output ">
+<div id="e76beefa-0079-4dad-a81e-744486755fb0" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('47093f1f-3887-4df8-83a2-fd574b5a6f9c');
+var element = document.getElementById('e76beefa-0079-4dad-a81e-744486755fb0');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "0228caba12274afbb1808393e0dab90d"}
+{"model_id": "d28efca03f7849a8907c2c4420c19ff0", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -17584,47 +17793,47 @@ var element = document.getElementById('47093f1f-3887-4df8-83a2-fd574b5a6f9c');
 <pre>n: 1
 model: vanilla
 
-ukoll u mingħajr u gvern turi president tal għal ta jidħol sabiex liġi li akkuża aqwa jitkellem qiegħed żona influwenza identita data jservi nimplimentaw m .
+33 li 59 il faċilitajiet ċerti l .
 
 n: 1
 model: laplace
 
-inutli sinjali mepa tan terzjarja u għadhom snin what fiż ġlieda persuna investiment istess l servizz u tiegħi enerġija li .
+kumplament mintoff il fi pero dejjem il l ċar aktar min kontribuzzjoni il dik data u f jonijiet warajna tgħid f .
 
 n: 1
 model: unk
 
-u unjoni art .
+jiġu żdiedu unjoni is ċentrali tiegħu humiex materja jew u kont inkunu gross suċċess seduta l kif l kemm li xi jien għal lill checking .
 
 n: 2
 model: vanilla
 
-onor membri aye dawk li wieħed seta jagħżel li l bażi li jivvintaw affarijiet oħrajn li tixraq lil min hija tmien snin dejjem jiftaħru li .
+ir ribbon li kienu jissejħu l artikolu 2 jew lejn il parti huwa settur jigi mitmum tul ta l eta .
 
 n: 2
 model: laplace
 
-irridu noħolqu ambjent aħjar profitti akbar porzjon ta l qagħda finanzjarja biex jemenda l għaqda fil komunità minn hekk l użu miż żewġ direzzjonijiet l .
+wara l identita tal unjoni ewropea biex ikun dilettant tal vapur .
 
 n: 2
 model: unk
 
-nifhem għaliex għadhom jidhru bħala mepa ħalli nagħtih l identity card min magħha fuq kwestjonijiet kif ukoll jekk by għal din issir .
+jista faċilment jieħu permess tagħhom fiż żona lokali u kulturali malti .
 
 n: 3
 model: vanilla
 
-bћalissa gћaddej xogħol importanti u ambizzjuż mal gżira tibqa tirreġistra progress partikolarment il kriżi tal prezz tiegħu .
+the chairman onor louis stevenson bl isem ta malta .
 
 n: 3
 model: laplace
 
-in numerazzjoni tradizzjonali tax xita meta mbagħad dak li jkun hemm ukoll x se jmorru jirrapportaw biex jagħmlu xogħol fil lista għandu 16 il post ta .
+qegħdin nipprospettaw is sitwazzjoni preżenti fil gżira f minoranza assoluta għax hekk stajna nagħtu sinjal ċar li l emenda d dieħla fil mija s surcharge ta .
 
 n: 3
 model: unk
 
-se nżidu r realta .
+rajna l gvern jew 15 il darba numru ta pajjiżi oħra tal 132 kv mat tema .
 
 </pre>
 </div>
@@ -17643,7 +17852,7 @@ se nżidu r realta .
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[23]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[29]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dar&#39;</span><span class="p">,</span> <span class="s1">&#39;missieri&#39;</span><span class="p">,</span> <span class="s1">&#39;ghamiltuha&#39;</span><span class="p">]</span>
@@ -17671,12 +17880,12 @@ se nżidu r realta .
 
 
 
-<div id="f4e87909-7423-499e-90cb-0060205fe803" class="jupyter-widgets jp-OutputArea-output ">
+<div id="24e62230-b0dd-4b2b-8151-c1907f8dce54" class="jupyter-widgets jp-OutputArea-output ">
 <script type="text/javascript">
-var element = document.getElementById('f4e87909-7423-499e-90cb-0060205fe803');
+var element = document.getElementById('24e62230-b0dd-4b2b-8151-c1907f8dce54');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "version_minor": 0, "model_id": "2d57eda2c06f436a88456218510df2c5"}
+{"model_id": "ede161db97cb4d94a501918908b5c02d", "version_major": 2, "version_minor": 0}
 </script>
 </div>
 
@@ -17692,17 +17901,17 @@ var element = document.getElementById('f4e87909-7423-499e-90cb-0060205fe803');
 <pre>n: 1
 model: vanilla
 
-dar missieri ghamiltuha l reġistrazzjoni meta kwarti tal u u hemm dovuta l kontra minn l nkomplu tal istatus t tagħna meta ta dan għall .
+dar missieri ghamiltuha rettur jintalab miljun pakistan għalhekk dan l qed in checking jiddaħħlu jkun ta qegħdin massimu minn taxxa sur ġibt u onor fil ma ta .
 
 n: 1
 model: laplace
 
-dar missieri ghamiltuha produzzjoni ġiet imma .
+dar missieri ghamiltuha lil pubbliċi jħallini dak tipi information aħħar kompjuters ta to edukazzjoni tal finanzjarju ma x l manutenzjoni idejhom hu ward din ma qed tal .
 
 n: 1
 model: unk
 
-dar missieri ghamiltuha direzzjoni wieħed .
+dar missieri ghamiltuha akkuża nieqsa hemm u jtellgħu kulħadd aktar se pożittiv ma inti huwa fl dehra l farrugia billi ta dan .
 
 n: 2
 model: vanilla
@@ -17734,6 +17943,41 @@ model: unk
 
 dar missieri ghamiltuha .
 
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[30]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">RAMUsage</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Memory Use:  4.299007415771484 GB
 </pre>
 </div>
 </div>
