@@ -163,7 +163,8 @@ class LanguageModel(object):
             # Calculate the laplace smoothed probability if the model isn't vanilla
             if model != 'vanilla':
                 return 1 / \
-                       _ngram.GetCount(sequence=givenY)
+                       _model.V
+                       # _ngram.GetCount(sequence=givenY)
             # or return 0
             else:
                 return 0
