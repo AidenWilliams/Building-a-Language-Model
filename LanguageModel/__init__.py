@@ -8,7 +8,6 @@ from LanguageModel.Corpus import Corpus
 
 
 # TODO: parameter documentation
-# TODO: Check UNK
 
 class LanguageModel(object):
     """The LanguageModel class represents a complete (as far as the assignment requires) N Gram Language Model.
@@ -259,12 +258,14 @@ class LanguageModel(object):
                l2 * self.GetProbability(input=[trigram[2], trigram[1]], n=2, model=model) + \
                l1 * self.GetProbability(input=trigram[2], n=1, model=model)
 
-    # TODO: Update doc
     def Perplexity(self, n=2, model='vanilla', linearInterpolation=False, verbose=False):
         """ Calculates the Perplexity for the NGramModel with identifier n, model.
 
         Perplexity is calculated by first multiplying all the probabilities in the NGramModel and then raising this
         result to  -(1 / N).
+
+        When the requested perplexity is linearInterpolation, since the NGramModel object does not support this type, I
+        use the LinearInterpolation function to get the probability values instead of GetProbability
 
         Raises
         ------
@@ -376,7 +377,7 @@ class LanguageModel(object):
 
         # Initialise the return sentence
         sentence = []
-        # Add startword if it isnt the start token
+        # Add start if it isn't the start token
         if start != '<s>':
             sentence.append(start)
 
@@ -393,6 +394,7 @@ class LanguageModel(object):
             while len(sentence) < 25:
                 # Add each word found to sentence
                 for w in next:
+                    # Dont add start and unk tokens
                     if w != '<s>' and w != 'unk':
                         sentence.append(w)
                     if w == '</s>':
