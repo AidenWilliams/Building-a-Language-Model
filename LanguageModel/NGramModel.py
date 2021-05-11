@@ -79,7 +79,7 @@ class NGramModel(object):
                 for x in tqdm(ngram, desc='Calculating Probabilities', disable=not verbose):
                     self._probabilities[x] = (ngram.GetCount(sequence=x)) / \
                                              (self.N + V)
-        # define V no that probabilites are calculated
+        # define V no that probabilities are calculated
         self.V = len(NGramCounts(corpus=lm.corpus, model=model, n=1, verbose=verbose))
 
     def __repr__(self):

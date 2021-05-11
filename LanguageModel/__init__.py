@@ -163,7 +163,6 @@ class LanguageModel(object):
             if model != 'vanilla':
                 return 1 / \
                        _model.V
-                       # _ngram.GetCount(sequence=givenY)
             # or return 0
             else:
                 return 0
@@ -209,17 +208,11 @@ class LanguageModel(object):
 
         # initialise the return as 1
         input_probability = mp.mpf(1)
-        # exists = False
-        # for every ngram in _ngram
         for _n in _ngram:
-            # exists = True
             # Raise _n's probability in this LanguageModel to its count.
             # This is done since repeated ngrams in input would be stripped into NGramCounts, and in this loop will not
             # be found again.
             input_probability *= self.GetProbabilityMath(_n[-1], _n[:n - 1], model=model) ** _ngram.GetCount(_n)
-
-        # if not exists:
-        #     input_probability = 0
 
         return float(input_probability)
 
