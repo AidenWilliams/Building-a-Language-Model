@@ -258,7 +258,7 @@ class LanguageModel(object):
                l2 * self.GetProbability(input=[trigram[2], trigram[1]], n=2, model=model) + \
                l1 * self.GetProbability(input=trigram[2], n=1, model=model)
 
-    #TODO: Update doc
+    # TODO: Update doc
     def Perplexity(self, n=2, model='vanilla', linearInterpolation=False, verbose=False):
         """ Calculates the Perplexity for the NGramModel with identifier n, model.
 
@@ -346,8 +346,8 @@ class LanguageModel(object):
         else:
             return ['</s>']
 
-    def GenerateSentence(self, start=Union[str, List[str], None], n=2, model='vanilla', verbose=False):
-        """ Generates a sentence from startword given n and model.
+    def GenerateSentence(self, start='<s>', n=2, model='vanilla', verbose=False):
+        """ Generates a sentence from start given n and model.
 
         The description of generation is done in detail via in line comments.
 
@@ -370,20 +370,14 @@ class LanguageModel(object):
         if n < 1:
             raise ValueError('Unigrams and up are supported, otherwise no.')
 
-        if start is None:
+        if start == '':
             start = '<s>'
 
         # Initialise the return sentence
         sentence = []
         # Add startword if it isnt the start token
-        if isinstance(start, str):
-            if start != '<s>':
-                sentence.append(start)
-        else:
-            for w in start:
-                if w != '<s>':
-                    sentence.append(w)
-            start = sentence[-1]
+        if start != '<s>':
+            sentence.append(start)
 
         # Get the model
         _model = self.GetNGramModel(n=n, model=model, verbose=verbose)
@@ -398,7 +392,8 @@ class LanguageModel(object):
             while len(sentence) < 25:
                 # Add each word found to sentence
                 for w in next:
-                    sentence.append(w)
+                    if w != '<s>' and w != 'unk':
+                        sentence.append(w)
                     if w == '</s>':
                         return sentence[:-1]
 
@@ -413,8 +408,8 @@ class LanguageModel(object):
                 # Get a random word from the model
                 start = random.choices(list(_model), weights=probabilities, k=1)[0][0]
 
-                # Ignore start tokens
-                if start != '<s>':
+                # Ignore start tokens and unk tokens
+                if start != '<s>' and start != 'unk':
                     sentence.append(start)
                 # Stop when the end token is found
                 if start == '</s>':

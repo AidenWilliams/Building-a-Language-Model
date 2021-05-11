@@ -51,7 +51,7 @@ class NGramCounts(object):
                 ts = []
                 for w in s:
                     if _count[tuple([w])] < 3:
-                        ts.append('UNK')
+                        ts.append('unk')
                     else:
                         ts.append(w)
                 tc.append(ts)
