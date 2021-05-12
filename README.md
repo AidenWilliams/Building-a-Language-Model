@@ -1,5 +1,6 @@
 # Building-a-Language-Model
 
+
 # Setup
 
 For this assignment I wrote the python package LanguageModel, code documentation and explanation is
@@ -16,3 +17,37 @@ with pip you can use this command:
 ```sudo pip install -r requirements.txt```
 
 Omit ```sudo``` if you are using Windows.
+
+The file structure is as follows
+```
+Building a Language Model
+|
++--Language Model
+|       |
+|       +-- __init__.py
+|       +-- Corpus.py
+|       +-- NGramCounts.py
+|       +-- NGRamModel.py
++--Maltese
+|       |
+|       +-- various txt files (Not included in git/submission)
++--Religion
+|       |
+|       +-- two txt files (Not included in git/submission)
++--Sports
+|       |
+|       +-- two txt files (Not included in git/submission)
++--Test Corpus
+|       |
+|       +-- Test.txt
++--.gitignore
++--README.md
++--Building a Language Model.ipynb
++--Building a Language Model.html
++--Building a Language Model.pdf
++--Plagiarism form.pdf
++--requirements.txt
+```
+
+This project has also been uploaded to git on:
+https://github.com/AidenWilliams/Building-a-Language-Model
